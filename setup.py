@@ -9,4 +9,5 @@ requirements.append(
 setup(name="sixv_magresp",
       version="0.0.0",
       packages=["sixv_magresp"],
+      package_data={"sixv_magresp": ["config.json"]},
       install_requires=requirements)
