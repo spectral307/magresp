@@ -1,7 +1,11 @@
 {
     "input": {
-        "dir": "",
-        "file": ""
+        "dir": "C:\\Users\\Umarov\\Desktop\\gtrfile\\tests",
+        "file": "test_record.gtr"
     },
-    "output": ""
+    "output": "",
+    "channels": {
+        "etalon": 0,
+        "dut": 1
+    }
 }
