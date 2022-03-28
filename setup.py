@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 with open("requirements.txt") as f:
     requirements = f.read().splitlines()
@@ -6,8 +6,8 @@ with open("requirements.txt") as f:
 requirements.append(
     "gtrfile @ git+https://github.com/spectral307/gtrfile.git#egg=gtrfile-1.0.0")
 
-setup(name="sixv_magresp",
+setup(name="magresp",
       version="0.0.0",
-      packages=["sixv_magresp"],
-      package_data={"sixv_magresp": ["config.json"]},
+      packages=["magresp"],
+      package_data={"magresp": ["config.json"]},
       install_requires=requirements)

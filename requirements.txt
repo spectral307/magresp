@@ -1,3 +1,4 @@
-gtrfile.egg==info
+matplotlib==3.3.4
 pandas==1.4.1
-rich==12.0.1
+rich==12.0.0
+setuptools==49.2.1
