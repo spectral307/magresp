@@ -1,11 +1,12 @@
 {
     "input": {
-        "dir": "C:\\Users\\Umarov\\Desktop\\gtrfile\\tests",
-        "file": "test_record.gtr"
+        "dir": "C:\\Users\\Umarov\\Desktop\\cal5\\records\\28.03.22",
+        "file": "6V202TP-16 №22001_с водой.gtr"
     },
     "output": "",
     "channels": {
         "etalon": 0,
         "dut": 1
-    }
+    },
+    "sequence": "up-down"
 }
