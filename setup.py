@@ -9,5 +9,5 @@ with open("requirements.txt") as f:
 setup(name="magresp",
       version="0.0.0",
       packages=["magresp"],
-      package_data={"magresp": ["config.json"]},
+      package_data={"magresp": ["default_settings.json"]},
       install_requires=requirements)

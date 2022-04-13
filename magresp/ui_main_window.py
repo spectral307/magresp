@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'magresp/main_window.ui'
+# Form implementation generated from reading ui file 'main_window.ui'
 #
 # Created by: PyQt6 UI code generator 6.1.0
 #
@@ -29,6 +29,8 @@ class Ui_MainWindow(object):
         self.open_file_action.setObjectName("open_file_action")
         self.exit_action = QtGui.QAction(MainWindow)
         self.exit_action.setObjectName("exit_action")
+        self.settings_action = QtGui.QAction(MainWindow)
+        self.settings_action.setObjectName("settings_action")
         self.menu.addAction(self.open_file_action)
         self.menu.addSeparator()
         self.menu.addAction(self.exit_action)
@@ -43,6 +45,7 @@ class Ui_MainWindow(object):
         self.menu.setTitle(_translate("MainWindow", "Файл"))
         self.open_file_action.setText(_translate("MainWindow", "Открыть..."))
         self.exit_action.setText(_translate("MainWindow", "Выход"))
+        self.settings_action.setText(_translate("MainWindow", "Настройки..."))
 
 
 if __name__ == "__main__":

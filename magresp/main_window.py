@@ -1,13 +1,12 @@
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QApplication
-from PyQt6.QtCore import QSettings, QDir
+from PyQt6.QtCore import QSettings, Qt
 from .ui_main_window import Ui_MainWindow
 from os.path import dirname
 from gtrfile import GtrFile
 import matplotlib.pyplot as plt
-from .signal import Signal
-from rich import print as rich_print
-from json import load as json_load
-import importlib.resources
+from .mr_signal import MRSignal
+from .on_open_file_dialog import OnOpenFileDialog
+from .osc_main_window import OscMainWindow
 
 
 class MainWindow(QMainWindow):
@@ -15,90 +14,77 @@ class MainWindow(QMainWindow):
         super().__init__(*args, **kwargs)
         self.__ui = Ui_MainWindow()
         self.__ui.setupUi(self)
+
         self.__ui.open_file_action.triggered.connect(self.open_file)
         self.__ui.exit_action.triggered.connect(self.exit)
 
-    def get_config(self):
-        with importlib.resources.open_text(__package__, "config.json") as file:
-            return json_load(file)
-
     def exit(self):
-        QApplication.q__uit()
+        QApplication.quit()
 
     def open_file(self):
         settings = QSettings()
-        default_dir = settings.value("default_dir")
-        home_dir = QDir.home().absolutePath()
-        if not default_dir:
-            default_dir = home_dir
 
+        default_dir = settings.value("default_dir")
         file = QFileDialog.getOpenFileName(
             self, "Открыть файл", default_dir, "Файлы gtr (*.gtr)")
-
-        if not file[0]:
+        record_path = file[0]
+        if not record_path:
             return
 
-        record_path = file[0]
+        record_dir = dirname(record_path)
+        if record_dir != settings.value("default_dir"):
+            settings.setValue("default_dir", record_dir)
 
-        dir = QDir()
-        settings.setValue("default_dir", dirname(
-            dir.absoluteFilePath(record_path)))
-        self.__ui.statusbar.showMessage(record_path)
+        res = OnOpenFileDialog().exec()
 
-        config = self.get_config()
+        if res == 1:
+            gtr = GtrFile(record_path)
 
-        gtr = GtrFile(record_path)
+            etalon_ch_number = settings.value("channels/etalon")
+            dut_ch_number = settings.value("channels/dut")
 
-        rich_print(gtr.header)
+            mr_signal = MRSignal.create_from_gtrfile(
+                gtr, etalon_ch_number, dut_ch_number)
 
-        sequence = config["sequence"]
+            block_duration = float(settings.value(
+                "ds_interval").replace(",", "."))
+            ds_mr_signal = mr_signal.downsample_by_block_averaging(
+                block_duration)
 
-        etalon_ch_number = config["channels"]["etalon"]
-        dut_ch_number = config["channels"]["dut"]
+            plot_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
-        etalon_ch_name = gtr.header["inputs"][etalon_ch_number]["name"]
-        dut_ch_name = gtr.header["inputs"][dut_ch_number]["name"]
+            osc_win = OscMainWindow(self)
+            osc_win.move(self.pos().x() + 25, self.pos().y() + 25)
+            osc_win.show()
 
-        etalon_ch_unit = gtr.header["inputs"][etalon_ch_number]["unit"]
-        dut_ch_unit = gtr.header["inputs"][dut_ch_number]["unit"]
+            osc_win.ax1.set_xlabel(str(ds_mr_signal.cols.time))
+            osc_win.ax1.set_ylabel(str(ds_mr_signal.cols.etalon_pq))
+            osc_win.ax1.autoscale(enable=True, axis="x", tight=True)
+            osc_win.ax2.set_xlabel(str(ds_mr_signal.cols.time))
+            osc_win.ax2.set_ylabel(str(ds_mr_signal.cols.dut))
+            osc_win.ax2.autoscale(enable=True, axis="x", tight=True)
 
-        record = Signal.create_from_gtrfile(
-            gtr, etalon_ch_number, dut_ch_number)
+            ds_mr_signal.calculate_etalon_pq_col(
+                settings.value("etalon/unit"),
+                float(settings.value("etalon/k").replace(",", ".")),
+                float(settings.value("etalon/u0").replace(",", ".")))
 
-        ds_record = record.downsample_by_block_averaging(.5)
+            osc_win.ax1.plot(ds_mr_signal.df[str(ds_mr_signal.cols.time)],
+                             ds_mr_signal.df[str(
+                                 ds_mr_signal.cols.etalon_pq)], color=plot_colors[1],
+                             label=str(ds_mr_signal.cols.etalon_pq), zorder=1, marker=".")
+            osc_win.ax2.plot(ds_mr_signal.df[str(ds_mr_signal.cols.time)],
+                             ds_mr_signal.df[str(
+                                 ds_mr_signal.cols.dut)], color=plot_colors[1],
+                             label=str(ds_mr_signal.cols.dut), zorder=1, marker=".")
 
-        plot_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+            if settings.value("show_raw_signals", type=bool):
+                mr_signal.calculate_etalon_pq_col(
+                    settings.value("etalon/unit"),
+                    float(settings.value("etalon/k").replace(",", ".")),
+                    float(settings.value("etalon/u0").replace(",", ".")))
 
-        fig, ax = plt.subplots(2, 1, sharex=True)
-        ax[0].plot(record.data[record.time.name], record.data[record.etalon.name],
-                   label=etalon_ch_name, zorder=0)
-        ax[1].plot(record.data[record.time.name], record.data[record.dut.name],
-                   label=dut_ch_name, zorder=0)
-        ax[0].scatter(ds_record.data[ds_record.time.name],
-                      ds_record.data[ds_record.etalon.name], color=plot_colors[1], label=etalon_ch_name, zorder=1)
-        ax[1].scatter(ds_record.data[ds_record.time.name],
-                      ds_record.data[ds_record.dut.name], color=plot_colors[1], label=dut_ch_name, zorder=1)
-        ax[0].grid()
-        ax[0].set_xlabel("t, s")
-        ax[0].set_ylabel(
-            f"{etalon_ch_name}{f' ,{etalon_ch_unit}' if etalon_ch_unit else ''}")
-        ax[0].autoscale(enable=True, axis="x", tight=True)
-        ax[1].grid()
-        ax[1].set_xlabel("t, s")
-        ax[1].set_ylabel(
-            f"{dut_ch_name}{f' ,{dut_ch_unit}' if dut_ch_unit else ''}")
-        ax[1].autoscale(enable=True, axis="x", tight=True)
-        # plt.get_current_fig_manager().window.showMaximized()
-        plt.show()
-
-        fig, ax = plt.subplots()
-        ax.plot(ds_record.data[ds_record.etalon.name],
-                ds_record.data[ds_record.dut.name])
-        ax.set_xlabel(
-            f"{etalon_ch_name}{f' ,{etalon_ch_unit}' if etalon_ch_unit else ''}")
-        ax.set_ylabel(
-            f"{dut_ch_name}{f' ,{dut_ch_unit}' if dut_ch_unit else ''}")
-        # ax.autoscale(enable=True, axis="x", tight=True)
-        ax.grid()
-        # plt.get_current_fig_manager().window.showMaximized()
-        plt.show()
+                osc_win.ax1.plot(mr_signal.df[str(mr_signal.cols.time)], mr_signal.df[str(mr_signal.cols.etalon_pq)],
+                                 label=str(mr_signal.cols.etalon_pq), zorder=0)
+                osc_win.ax2.plot(mr_signal.df[str(mr_signal.cols.time)], mr_signal.df[str(mr_signal.cols.dut)],
+                                 label=str(mr_signal.cols.dut), zorder=0)
