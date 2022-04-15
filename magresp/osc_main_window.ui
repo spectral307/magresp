@@ -27,14 +27,14 @@
     <property name="title">
      <string>АХ</string>
     </property>
-    <addaction name="mr_action"/>
+    <addaction name="build_mr_action"/>
     <addaction name="separator"/>
     <addaction name="exit_action"/>
    </widget>
    <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="mr_action">
+  <action name="build_mr_action">
    <property name="text">
     <string>Построить АХ...</string>
    </property>

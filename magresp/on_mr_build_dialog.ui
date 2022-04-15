@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>719</width>
     <height>542</height>
    </rect>
   </property>
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>440</y>
+     <y>480</y>
      <width>341</width>
      <height>32</height>
     </rect>
@@ -32,56 +32,36 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QComboBox" name="comboBox">
+  <widget class="QComboBox" name="sequence_combo_box">
    <property name="geometry">
     <rect>
-     <x>150</x>
-     <y>10</y>
-     <width>69</width>
+     <x>230</x>
+     <y>20</y>
+     <width>111</width>
      <height>22</height>
     </rect>
    </property>
-   <item>
-    <property name="text">
-     <string>вверх</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>вверх -&gt; вниз</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>вниз</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>вниз -&gt; вверх</string>
-    </property>
-   </item>
   </widget>
-  <widget class="QLabel" name="label">
+  <widget class="QLabel" name="sequence_label">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>121</width>
+     <x>20</x>
+     <y>20</y>
+     <width>201</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Последовательность:</string>
+    <string>Порядок изменения физ. величины:</string>
    </property>
   </widget>
-  <widget class="QGroupBox" name="groupBox">
+  <widget class="QGroupBox" name="grid_group_box">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>40</y>
-     <width>381</width>
-     <height>291</height>
+     <y>70</y>
+     <width>491</width>
+     <height>391</height>
     </rect>
    </property>
    <property name="title">
@@ -90,15 +70,38 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
-   <widget class="QTableWidget" name="tableWidget">
+   <widget class="QTableView" name="grid_table_view">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>30</y>
-      <width>256</width>
-      <height>192</height>
+      <y>50</y>
+      <width>221</width>
+      <height>331</height>
      </rect>
     </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>239</x>
+      <y>19</y>
+      <width>241</width>
+      <height>361</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>GroupBox</string>
+    </property>
+    <widget class="QTableView" name="tableView">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>221</width>
+       <height>331</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>

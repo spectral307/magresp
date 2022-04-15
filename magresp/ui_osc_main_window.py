@@ -25,11 +25,11 @@ class Ui_OscMainWindow(object):
         self.statusbar = QtWidgets.QStatusBar(OscMainWindow)
         self.statusbar.setObjectName("statusbar")
         OscMainWindow.setStatusBar(self.statusbar)
-        self.mr_action = QtGui.QAction(OscMainWindow)
-        self.mr_action.setObjectName("mr_action")
+        self.build_mr_action = QtGui.QAction(OscMainWindow)
+        self.build_mr_action.setObjectName("build_mr_action")
         self.exit_action = QtGui.QAction(OscMainWindow)
         self.exit_action.setObjectName("exit_action")
-        self.menu.addAction(self.mr_action)
+        self.menu.addAction(self.build_mr_action)
         self.menu.addSeparator()
         self.menu.addAction(self.exit_action)
         self.menubar.addAction(self.menu.menuAction())
@@ -41,7 +41,7 @@ class Ui_OscMainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         OscMainWindow.setWindowTitle(_translate("OscMainWindow", "MainWindow"))
         self.menu.setTitle(_translate("OscMainWindow", "АХ"))
-        self.mr_action.setText(_translate("OscMainWindow", "Построить АХ..."))
+        self.build_mr_action.setText(_translate("OscMainWindow", "Построить АХ..."))
         self.exit_action.setText(_translate("OscMainWindow", "Закрыть"))
 
 

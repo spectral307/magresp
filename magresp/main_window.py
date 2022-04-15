@@ -51,40 +51,6 @@ class MainWindow(QMainWindow):
             ds_mr_signal = mr_signal.downsample_by_block_averaging(
                 block_duration)
 
-            plot_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
-
-            osc_win = OscMainWindow(self)
+            osc_win = OscMainWindow(mr_signal, ds_mr_signal, self)
             osc_win.move(self.pos().x() + 25, self.pos().y() + 25)
             osc_win.show()
-
-            osc_win.ax1.set_xlabel(str(ds_mr_signal.cols.time))
-            osc_win.ax1.set_ylabel(str(ds_mr_signal.cols.etalon_pq))
-            osc_win.ax1.autoscale(enable=True, axis="x", tight=True)
-            osc_win.ax2.set_xlabel(str(ds_mr_signal.cols.time))
-            osc_win.ax2.set_ylabel(str(ds_mr_signal.cols.dut))
-            osc_win.ax2.autoscale(enable=True, axis="x", tight=True)
-
-            ds_mr_signal.calculate_etalon_pq_col(
-                settings.value("etalon/unit"),
-                float(settings.value("etalon/k").replace(",", ".")),
-                float(settings.value("etalon/u0").replace(",", ".")))
-
-            osc_win.ax1.plot(ds_mr_signal.df[str(ds_mr_signal.cols.time)],
-                             ds_mr_signal.df[str(
-                                 ds_mr_signal.cols.etalon_pq)], color=plot_colors[1],
-                             label=str(ds_mr_signal.cols.etalon_pq), zorder=1, marker=".")
-            osc_win.ax2.plot(ds_mr_signal.df[str(ds_mr_signal.cols.time)],
-                             ds_mr_signal.df[str(
-                                 ds_mr_signal.cols.dut)], color=plot_colors[1],
-                             label=str(ds_mr_signal.cols.dut), zorder=1, marker=".")
-
-            if settings.value("show_raw_signals", type=bool):
-                mr_signal.calculate_etalon_pq_col(
-                    settings.value("etalon/unit"),
-                    float(settings.value("etalon/k").replace(",", ".")),
-                    float(settings.value("etalon/u0").replace(",", ".")))
-
-                osc_win.ax1.plot(mr_signal.df[str(mr_signal.cols.time)], mr_signal.df[str(mr_signal.cols.etalon_pq)],
-                                 label=str(mr_signal.cols.etalon_pq), zorder=0)
-                osc_win.ax2.plot(mr_signal.df[str(mr_signal.cols.time)], mr_signal.df[str(mr_signal.cols.dut)],
-                                 label=str(mr_signal.cols.dut), zorder=0)

@@ -2,6 +2,7 @@ import sys
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QSettings, QDir
 from .main_window import MainWindow
+from .sequence import Sequence
 
 
 def load_settings():
@@ -31,6 +32,9 @@ def load_settings():
         settings.setValue("etalon", 0)
         settings.setValue("dut", 1)
         settings.endGroup()
+
+    if not settings.value("sequence"):
+        settings.setValue("sequence", 0)
 
 
 def main():
