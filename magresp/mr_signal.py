@@ -1,5 +1,6 @@
 import pandas as pd
 from typing import NamedTuple
+from .sequence import Sequence
 
 
 class column(NamedTuple):
@@ -42,6 +43,7 @@ class MRSignal:
         self.fs = fs
         self.k = None
         self.u0 = None
+        self.parts = []
 
     @classmethod
     def _create_from_vectors(cls, fs, time_vector, etalon_vector, dut_vector,
@@ -90,3 +92,32 @@ class MRSignal:
         self.cols.etalon_pq = column(self.cols.etalon.name, unit)
         self.df[str(self.cols.etalon_pq)] = (
             self.df[str(self.cols.etalon)] - u0) / k
+
+    def separate_into_parts(self, sequence):
+        self.parts = []
+        if sequence == Sequence.UP:
+            self.parts.append(self.df)
+            self.parts[0].is_up_part = True
+            self.parts[0].is_down_part = False
+        elif sequence == Sequence.DOWN:
+            self.parts.append(self.df)
+            self.parts[0].is_up_part = False
+            self.parts[0].is_down_part = True
+        elif sequence == Sequence.UP_DOWN:
+            borderpoint = self.df[str(self.cols.etalon)].idxmax()
+            self.parts.append(self.df.loc[:borderpoint])
+            self.parts.append(self.df.loc[borderpoint:])
+            self.parts[0].is_up_part = True
+            self.parts[0].is_down_part = False
+            self.parts[1].is_up_part = False
+            self.parts[1].is_down_part = True
+        elif sequence == Sequence.DOWN_UP:
+            borderpoint = self.df[str(self.cols.etalon)].idxmin()
+            self.parts.append(self.df.loc[:borderpoint])
+            self.parts.append(self.df.loc[borderpoint:])
+            self.parts[0].is_up_part = False
+            self.parts[0].is_down_part = True
+            self.parts[1].is_up_part = True
+            self.parts[1].is_down_part = False
+        else:
+            raise ValueError("sequence")

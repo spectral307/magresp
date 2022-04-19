@@ -2,3 +2,4 @@
 magresp.egg-info/
 build/
 /.qt_for_python
+/.idea

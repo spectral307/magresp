@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QSettings, QDir
 from .main_window import MainWindow
 from .sequence import Sequence
+import numpy as np
 
 
 def load_settings():
@@ -34,7 +35,19 @@ def load_settings():
         settings.endGroup()
 
     if not settings.value("sequence"):
-        settings.setValue("sequence", 0)
+        settings.setValue("sequence", int(Sequence.UP_DOWN))
+
+    if not settings.value("grid_on"):
+        settings.setValue("grid_on", False)
+
+    if not settings.value("down_grid_on"):
+        settings.setValue("down_grid_on", False)
+
+    if settings.value("grid") is not None:
+        settings.setValue("grid", np.array([0, 100], dtype=np.float64))
+
+    if settings.value("down_grid") is not None:
+        settings.setValue("down_grid", np.array([0, 100], dtype=np.float64))
 
 
 def main():

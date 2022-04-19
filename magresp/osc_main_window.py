@@ -77,22 +77,6 @@ class OscMainWindow(QMainWindow):
         res = OnMrBuildDialog().exec()
 
         if res == 1:
-            sequence = Sequence(self.__settings.value("sequence", type=int))
-
-            self.__separate_mr_signal()
-
-            mr_win = MrMainWindow(self)
+            mr_win = MrMainWindow(self.__ds_mr_signal, self)
             mr_win.move(self.pos().x() + 25, self.pos().y() + 25)
             mr_win.show()
-
-    def __separate_mr_signal(self, mr_signal, sequence):
-        if sequence == Sequence.UP:
-            pass
-        elif sequence == Sequence.DOWN:
-            pass
-        elif sequence == Sequence.UP_DOWN:
-            pass
-        elif sequence == Sequence.DOWN_UP:
-            pass
-        else:
-            raise ValueError("sequence")
