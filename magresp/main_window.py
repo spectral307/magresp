@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QApplication
-from PyQt6.QtCore import QSettings, Qt
+from PyQt6.QtCore import QSettings
 from .ui_main_window import Ui_MainWindow
 from os.path import dirname
 from gtrfile import GtrFile
@@ -40,11 +40,19 @@ class MainWindow(QMainWindow):
         if res == 1:
             gtr = GtrFile(record_path)
 
-            etalon_ch_number = settings.value("channels/etalon")
-            dut_ch_number = settings.value("channels/dut")
+            etalon_ch_number = settings.value("channels/etalon/ordinal")
+            dut_ch_number = settings.value("channels/dut/ordinal")
+
+            etalon_ch_name = None
+            if not settings.value("channels/etalon/use_gtl_name", type=bool):
+                etalon_ch_name = settings.value("channels/etalon/name")
+
+            dut_ch_name = None
+            if not settings.value("channels/dut/use_gtl_name", type=bool):
+                dut_ch_name = settings.value("channels/dut/name")
 
             mr_signal = MRSignal.create_from_gtrfile(
-                gtr, etalon_ch_number, dut_ch_number)
+                gtr, etalon_ch_number, dut_ch_number, etalon_ch_name, dut_ch_name)
 
             block_duration = float(settings.value(
                 "ds_interval").replace(",", "."))

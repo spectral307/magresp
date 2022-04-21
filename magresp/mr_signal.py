@@ -57,15 +57,21 @@ class MRSignal:
         return MRSignal(fs, df, time_col, etalon_col, dut_col)
 
     @classmethod
-    def create_from_gtrfile(cls, gtrfile, etalon_ch_number, dut_ch_number):
+    def create_from_gtrfile(cls, gtrfile, etalon_ch_number, dut_ch_number, etalon_ch_name=None, dut_ch_name=None):
         items = gtrfile.read_items(-1, until_eof=True)
-        etalon_ch_name = gtrfile.header["inputs"][etalon_ch_number]["name"]
-        dut_ch_name = gtrfile.header["inputs"][dut_ch_number]["name"]
-        etalon_col_ch_unit = gtrfile.header["inputs"][etalon_ch_number]["unit"]
-        dut_col_ch_unit = gtrfile.header["inputs"][dut_ch_number]["unit"]
+        gtl_etalon_ch_name = gtrfile.header["inputs"][etalon_ch_number]["name"]
+        gtl_dut_ch_name = gtrfile.header["inputs"][dut_ch_number]["name"]
+        if etalon_ch_name is None:
+            etalon_ch_name = gtl_etalon_ch_name
+        if dut_ch_name is None:
+            dut_ch_name = gtl_dut_ch_name
+        # etalon_ch_unit = gtrfile.header["inputs"][etalon_ch_number]["unit"]
+        # dut_ch_unit = gtrfile.header["inputs"][dut_ch_number]["unit"]
+        etalon_ch_unit = "В"
+        dut_ch_unit = "В"
         return cls._create_from_vectors(gtrfile.header["rate"], items["t"],
-                                        items["s"][etalon_ch_name], items["s"][dut_ch_name], "время", "с",
-                                        etalon_ch_name, etalon_col_ch_unit, dut_ch_name, dut_col_ch_unit)
+                                        items["s"][gtl_etalon_ch_name], items["s"][gtl_dut_ch_name], "время", "с",
+                                        etalon_ch_name, etalon_ch_unit, dut_ch_name, dut_ch_unit)
 
     def __get_avg_time_block_function(self, block_duration):
         def avg_time_block(group):

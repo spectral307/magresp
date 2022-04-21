@@ -7,17 +7,17 @@
     <x>0</x>
     <y>0</y>
     <width>531</width>
-    <height>775</height>
+    <height>811</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Построение АХ</string>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>720</y>
+     <y>750</y>
      <width>511</width>
      <height>32</height>
     </rect>
@@ -61,7 +61,7 @@
      <x>10</x>
      <y>60</y>
      <width>511</width>
-     <height>641</height>
+     <height>671</height>
     </rect>
    </property>
    <property name="title">
@@ -76,7 +76,7 @@
       <x>250</x>
       <y>20</y>
       <width>251</width>
-      <height>611</height>
+      <height>641</height>
      </rect>
     </property>
     <property name="title">
@@ -121,17 +121,17 @@
       <string>Сохранить...</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="add_down_grid_item_push_button">
+    <widget class="QPushButton" name="append_down_grid_item_push_button">
      <property name="geometry">
       <rect>
        <x>210</x>
-       <y>30</y>
+       <y>610</y>
        <width>31</width>
        <height>24</height>
       </rect>
      </property>
      <property name="text">
-      <string>+</string>
+      <string/>
      </property>
     </widget>
    </widget>
@@ -171,17 +171,17 @@
      <string>Сохранить...</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="add_grid_item_push_button">
+   <widget class="QPushButton" name="append_grid_item_push_button">
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>50</y>
+      <y>630</y>
       <width>31</width>
       <height>24</height>
      </rect>
     </property>
     <property name="text">
-     <string>+</string>
+     <string/>
     </property>
    </widget>
   </widget>

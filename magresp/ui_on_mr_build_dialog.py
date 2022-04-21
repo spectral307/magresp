@@ -12,9 +12,9 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_OnMrBuildDialog(object):
     def setupUi(self, OnMrBuildDialog):
         OnMrBuildDialog.setObjectName("OnMrBuildDialog")
-        OnMrBuildDialog.resize(531, 775)
+        OnMrBuildDialog.resize(531, 811)
         self.buttonBox = QtWidgets.QDialogButtonBox(OnMrBuildDialog)
-        self.buttonBox.setGeometry(QtCore.QRect(10, 720, 511, 32))
+        self.buttonBox.setGeometry(QtCore.QRect(10, 750, 511, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Orientation.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Ok)
         self.buttonBox.setCenterButtons(True)
@@ -26,11 +26,11 @@ class Ui_OnMrBuildDialog(object):
         self.sequence_label.setGeometry(QtCore.QRect(20, 20, 201, 16))
         self.sequence_label.setObjectName("sequence_label")
         self.grid_group_box = QtWidgets.QGroupBox(OnMrBuildDialog)
-        self.grid_group_box.setGeometry(QtCore.QRect(10, 60, 511, 641))
+        self.grid_group_box.setGeometry(QtCore.QRect(10, 60, 511, 671))
         self.grid_group_box.setCheckable(True)
         self.grid_group_box.setObjectName("grid_group_box")
         self.down_grid_group_box = QtWidgets.QGroupBox(self.grid_group_box)
-        self.down_grid_group_box.setGeometry(QtCore.QRect(250, 20, 251, 611))
+        self.down_grid_group_box.setGeometry(QtCore.QRect(250, 20, 251, 641))
         self.down_grid_group_box.setCheckable(True)
         self.down_grid_group_box.setObjectName("down_grid_group_box")
         self.down_grid_table_view = QtWidgets.QTableView(self.down_grid_group_box)
@@ -42,9 +42,10 @@ class Ui_OnMrBuildDialog(object):
         self.save_down_grid_push_button = QtWidgets.QPushButton(self.down_grid_group_box)
         self.save_down_grid_push_button.setGeometry(QtCore.QRect(110, 30, 91, 24))
         self.save_down_grid_push_button.setObjectName("save_down_grid_push_button")
-        self.add_down_grid_item_push_button = QtWidgets.QPushButton(self.down_grid_group_box)
-        self.add_down_grid_item_push_button.setGeometry(QtCore.QRect(210, 30, 31, 24))
-        self.add_down_grid_item_push_button.setObjectName("add_down_grid_item_push_button")
+        self.append_down_grid_item_push_button = QtWidgets.QPushButton(self.down_grid_group_box)
+        self.append_down_grid_item_push_button.setGeometry(QtCore.QRect(210, 610, 31, 24))
+        self.append_down_grid_item_push_button.setText("")
+        self.append_down_grid_item_push_button.setObjectName("append_down_grid_item_push_button")
         self.grid_table_view = QtWidgets.QTableView(self.grid_group_box)
         self.grid_table_view.setGeometry(QtCore.QRect(10, 80, 231, 541))
         self.grid_table_view.setObjectName("grid_table_view")
@@ -54,9 +55,10 @@ class Ui_OnMrBuildDialog(object):
         self.save_grid_push_button = QtWidgets.QPushButton(self.grid_group_box)
         self.save_grid_push_button.setGeometry(QtCore.QRect(110, 50, 91, 24))
         self.save_grid_push_button.setObjectName("save_grid_push_button")
-        self.add_grid_item_push_button = QtWidgets.QPushButton(self.grid_group_box)
-        self.add_grid_item_push_button.setGeometry(QtCore.QRect(210, 50, 31, 24))
-        self.add_grid_item_push_button.setObjectName("add_grid_item_push_button")
+        self.append_grid_item_push_button = QtWidgets.QPushButton(self.grid_group_box)
+        self.append_grid_item_push_button.setGeometry(QtCore.QRect(210, 630, 31, 24))
+        self.append_grid_item_push_button.setText("")
+        self.append_grid_item_push_button.setObjectName("append_grid_item_push_button")
 
         self.retranslateUi(OnMrBuildDialog)
         self.buttonBox.accepted.connect(OnMrBuildDialog.accept)
@@ -65,16 +67,14 @@ class Ui_OnMrBuildDialog(object):
 
     def retranslateUi(self, OnMrBuildDialog):
         _translate = QtCore.QCoreApplication.translate
-        OnMrBuildDialog.setWindowTitle(_translate("OnMrBuildDialog", "Dialog"))
+        OnMrBuildDialog.setWindowTitle(_translate("OnMrBuildDialog", "Построение АХ"))
         self.sequence_label.setText(_translate("OnMrBuildDialog", "Порядок изменения физ. величины:"))
         self.grid_group_box.setTitle(_translate("OnMrBuildDialog", "Сетка"))
         self.down_grid_group_box.setTitle(_translate("OnMrBuildDialog", "Отдельная сетка для спуска"))
         self.load_down_grid_push_button.setText(_translate("OnMrBuildDialog", "Загрузить..."))
         self.save_down_grid_push_button.setText(_translate("OnMrBuildDialog", "Сохранить..."))
-        self.add_down_grid_item_push_button.setText(_translate("OnMrBuildDialog", "+"))
         self.load_grid_push_button.setText(_translate("OnMrBuildDialog", "Загрузить..."))
         self.save_grid_push_button.setText(_translate("OnMrBuildDialog", "Сохранить..."))
-        self.add_grid_item_push_button.setText(_translate("OnMrBuildDialog", "+"))
 
 
 if __name__ == "__main__":

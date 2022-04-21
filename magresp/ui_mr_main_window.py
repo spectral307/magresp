@@ -32,7 +32,7 @@ class Ui_MrMainWindow(object):
 
     def retranslateUi(self, MrMainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MrMainWindow.setWindowTitle(_translate("MrMainWindow", "MainWindow"))
+        MrMainWindow.setWindowTitle(_translate("MrMainWindow", "АХ"))
         self.menu.setTitle(_translate("MrMainWindow", "Интерполяция"))
 
 

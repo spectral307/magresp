@@ -7,18 +7,18 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>380</height>
+    <height>670</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Первичная обработка</string>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>320</y>
-     <width>341</width>
+     <x>10</x>
+     <y>610</y>
+     <width>381</width>
      <height>32</height>
     </rect>
    </property>
@@ -139,7 +139,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Интервал, с</string>
+     <string>Интервал, с:</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="ds_line_edit">
@@ -157,7 +157,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>230</y>
+     <y>520</y>
      <width>381</width>
      <height>71</height>
     </rect>
@@ -177,6 +177,169 @@
     <property name="text">
      <string>Показывать исходные сигналы</string>
     </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="channels_settings_group_box">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>230</y>
+     <width>381</width>
+     <height>281</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Каналы</string>
+   </property>
+   <widget class="QGroupBox" name="etalon_ch_group_box">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>361</width>
+      <height>121</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Эталон</string>
+    </property>
+    <widget class="QLabel" name="etalon_ch_name_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>61</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Название:</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="etalon_ch_name_line_edit">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>30</y>
+       <width>271</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="use_gtl_etalon_ch_name_check_box">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>231</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Использовать название канала из GTL</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="etalon_ch_ordinal_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>90</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Порядковый номер:</string>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="etalon_ch_ordinal_spin_box">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>90</y>
+       <width>51</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="maximum">
+      <number>1</number>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="dut_ch_group_box">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>150</y>
+      <width>361</width>
+      <height>121</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Измеряемый прибор</string>
+    </property>
+    <widget class="QLabel" name="dut_ch_name_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>61</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Название:</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="dut_ch_name_line_edit">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>30</y>
+       <width>271</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="use_gtl_dut_ch_name_check_box">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>231</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Использовать название канала из GTL</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="dut_ch_ordinal_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>90</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Порядковый номер:</string>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="dut_ch_ordinal_spin_box">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>90</y>
+       <width>51</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="maximum">
+      <number>1</number>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>

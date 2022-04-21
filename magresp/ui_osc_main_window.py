@@ -39,7 +39,7 @@ class Ui_OscMainWindow(object):
 
     def retranslateUi(self, OscMainWindow):
         _translate = QtCore.QCoreApplication.translate
-        OscMainWindow.setWindowTitle(_translate("OscMainWindow", "MainWindow"))
+        OscMainWindow.setWindowTitle(_translate("OscMainWindow", "Осциллограмма сигнала"))
         self.menu.setTitle(_translate("OscMainWindow", "АХ"))
         self.build_mr_action.setText(_translate("OscMainWindow", "Построить АХ..."))
         self.exit_action.setText(_translate("OscMainWindow", "Закрыть"))

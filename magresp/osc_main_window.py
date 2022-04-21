@@ -13,6 +13,8 @@ class OscMainWindow(QMainWindow):
     def __init__(self, mr_signal, ds_mr_signal, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.__mr_win = None
+
         self.__mr_signal = mr_signal
         self.__ds_mr_signal = ds_mr_signal
         self.__settings = QSettings()
@@ -35,13 +37,6 @@ class OscMainWindow(QMainWindow):
 
         self.__ui.build_mr_action.triggered.connect(self.__build_mr)
         self.__ui.exit_action.triggered.connect(self.__exit)
-
-        self.__ax1.set_xlabel(str(ds_mr_signal.cols.time))
-        self.__ax1.set_ylabel(str(ds_mr_signal.cols.etalon_pq))
-        self.__ax1.autoscale(enable=True, axis="x", tight=True)
-        self.__ax2.set_xlabel(str(ds_mr_signal.cols.time))
-        self.__ax2.set_ylabel(str(ds_mr_signal.cols.dut))
-        self.__ax2.autoscale(enable=True, axis="x", tight=True)
 
         ds_mr_signal.calculate_etalon_pq_col(
             self.__settings.value("etalon/unit"),
@@ -70,6 +65,13 @@ class OscMainWindow(QMainWindow):
             self.__ax2.plot(mr_signal.df[str(mr_signal.cols.time)], mr_signal.df[str(mr_signal.cols.dut)],
                             label=str(mr_signal.cols.dut), zorder=0)
 
+        self.__ax1.set_xlabel(str(ds_mr_signal.cols.time))
+        self.__ax1.set_ylabel(str(ds_mr_signal.cols.etalon_pq))
+        self.__ax1.autoscale(enable=True, axis="x", tight=True)
+        self.__ax2.set_xlabel(str(ds_mr_signal.cols.time))
+        self.__ax2.set_ylabel(str(ds_mr_signal.cols.dut))
+        self.__ax2.autoscale(enable=True, axis="x", tight=True)
+
     def __exit(self):
         self.close()
 
@@ -77,6 +79,6 @@ class OscMainWindow(QMainWindow):
         res = OnMrBuildDialog().exec()
 
         if res == 1:
-            mr_win = MrMainWindow(self.__ds_mr_signal, self)
-            mr_win.move(self.pos().x() + 25, self.pos().y() + 25)
-            mr_win.show()
+            self.__mr_win = MrMainWindow(self.__ds_mr_signal, self)
+            self.__mr_win.move(self.pos().x() + 25, self.pos().y() + 25)
+            self.__mr_win.show()

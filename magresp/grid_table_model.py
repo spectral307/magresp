@@ -1,7 +1,6 @@
-from PyQt6.QtCore import Qt, QAbstractTableModel
+from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex
 from PyQt6.QtWidgets import QDoubleSpinBox, QStyledItemDelegate
 from math import inf
-import numpy as np
 
 
 class GridItemDelegate(QStyledItemDelegate):
@@ -10,27 +9,37 @@ class GridItemDelegate(QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         editor = QDoubleSpinBox(parent)
-        editor.setDecimals(5)
+        editor.setDecimals(3)
         editor.setMinimum(-inf)
         editor.setMaximum(inf)
         return editor
 
 
 class GridTableModel(QAbstractTableModel):
-    def __init__(self, data):
+    def __init__(self, data, unit):
         super().__init__()
-        self._data = np.zeros((len(data), 3), dtype=np.float64)
-        self._data[:, 0] = data
+        self._data = []
+        for i, el in enumerate(data):
+            self._data.append([float(el), 0, 0])
+        self.__header_labels = [unit, "+", "-"]
 
     def data(self, index, role):
-        if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
-            return float(self._data[index.row(), index.column()])
+        row = index.row()
+        col = index.column()
+        if col >= 1:
+            return
+        if role == Qt.ItemDataRole.EditRole:
+            return self._data[row][col]
+        if role == Qt.ItemDataRole.DisplayRole:
+            return "{:.3f}".format(self._data[row][col]).replace(".", ",")
 
-    def rowCount(self, index):
-        return self._data.shape[0]
+    def rowCount(self, index=None):
+        return len(self._data)
 
-    def columnCount(self, index):
-        return self._data.shape[1]
+    def columnCount(self, index=None):
+        if len(self._data) == 0:
+            return 0
+        return len(self._data[0])
 
     def flags(self, index):
         flags = super().flags(index)
@@ -46,8 +55,35 @@ class GridTableModel(QAbstractTableModel):
     def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
         row = index.row()
         col = index.column()
-        self._data[row, col] = value
+        if col >= 1:
+            return False
+        self._data[row][col] = value
         return True
 
+    def insertRows(self, row: int, count: int, parent: QModelIndex = QModelIndex()) -> bool:
+        self.beginInsertRows(parent, row, row+count-1)
+        for i in range(count):
+            self._data.insert(row, [0, 0, 0])
+        self.endInsertRows()
+        return True
+
+    def removeRows(self, row: int, count: int, parent: QModelIndex = QModelIndex()) -> bool:
+        self.beginRemoveRows(parent, row, row+count-1)
+        for i in range(count):
+            self._data.pop(row)
+        self.endRemoveRows()
+        return True
+
+    def headerData(self, section: int, orientation: Qt.Orientation, role: int):
+        if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
+            return self.__header_labels[section]
+        return super().headerData(section, orientation, role)
+
     def getGrid(self):
-        return self._data[:, 0]
+        return [el[0] for el in self._data]
+
+    def getRow(self, row):
+        return self._data[row]
+
+    def getRowIndex(self, row):
+        return self._data.index(row)
