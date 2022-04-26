@@ -11,11 +11,12 @@ class MrMainWindow(QMainWindow):
         super().__init__(*args, **kwargs)
 
         self.__ds_mr_signal = ds_mr_signal
-        self.mr_build_requested = pyqtSignal()
         self.__settings = QSettings()
 
         self.__ui = Ui_MrMainWindow()
         self.__ui.setupUi(self)
+
+        self.__colors = self.__settings.value("colors", type=dict)
 
         figure = Figure(figsize=(5, 3))
         canvas = FigureCanvas(figure)
@@ -33,14 +34,21 @@ class MrMainWindow(QMainWindow):
 
         sequence = Sequence(self.__settings.value("sequence", type=int))
 
-        self.__ds_mr_signal.separate_into_parts(sequence)
+        if self.__settings.value("grid/on", type=bool):
+            sequence = Sequence(self.__settings.value("sequence", type=int))
+            margin = self.__settings.value("grid/margin", type=float)
+            grid = [float(item)
+                    for item in self.__settings.value("grid/data", type=list)]
+            self.__ds_mr_signal.calculate_parts_by_grid(sequence, grid, margin)
+        else:
+            self.__ds_mr_signal.calculate_parts_by_extremum(sequence)
 
-        for part in self.__ds_mr_signal.parts:
-            if part.is_up_part:
-                label = "подъем"
-            elif part.is_down_part:
-                label = "спуск"
-            self.__ax.plot(part[str(self.__ds_mr_signal.cols.etalon_pq)],
-                           part[str(self.__ds_mr_signal.cols.dut)],
-                           label=label)
-        self.__ax.legend()
+            for part in self.__ds_mr_signal.parts:
+                if part.type == "up":
+                    label = "подъем"
+                elif part.type == "down":
+                    label = "спуск"
+                self.__ax.plot(part[str(self.__ds_mr_signal.cols.etalon_pq)],
+                               part[str(self.__ds_mr_signal.cols.dut)],
+                               label=label, color=self.__colors[part.type])
+            self.__ax.legend()

@@ -3,10 +3,23 @@ from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QSettings, QDir
 from .main_window import MainWindow
 from .sequence import Sequence
+import matplotlib.pyplot as plt
 
 
 def load_settings(reset=False):
     settings = QSettings()
+
+    if settings.value("colors") is None:
+        default_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        colors = {
+            "raw": default_colors[0],
+            "ds": default_colors[1],
+            "up": default_colors[1],
+            "down": default_colors[2],
+            "top": default_colors[3],
+            "bottom": default_colors[3]
+        }
+        settings.setValue("colors", colors)
 
     if reset:
         settings.clear()
@@ -51,6 +64,7 @@ def load_settings(reset=False):
         settings.setValue("down_grid/on", False)
         settings.setValue("grid/data", [0., 100.])
         settings.setValue("down_grid/data", [0., 100.])
+        settings.setValue("grid/margin", 10.)
 
 
 def remove_mr_settings():

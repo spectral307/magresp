@@ -18,6 +18,13 @@ class OnMrBuildDialog(QDialog):
 
         self.__settings = QSettings()
 
+        self.__ui.margin_unit_label.setText(
+            self.__settings.value("etalon/unit"))
+        self.__ui.margin_unit_label.adjustSize()
+
+        self.__ui.margin_double_spin_box.setValue(
+            self.__settings.value("grid/margin", type=float))
+
         with importlib.resources.path(f"{__package__}.images", "plus.png") as p:
             plus_path = p
         with importlib.resources.path(f"{__package__}.images", "minus.png") as p:
@@ -132,18 +139,34 @@ class OnMrBuildDialog(QDialog):
     def __on_down_grid_group_box_toggled(self, checked):
         self.__settings.setValue("down_grid/on", checked)
 
+    def __is_strictly_increasing(self, grid):
+        return all(x < y for x, y in zip(grid, grid[1:]))
+
     def accept(self):
         grid = self.__grid_table_model.getGrid()
         grid_on = self.__ui.grid_group_box.isChecked()
-        if grid_on and len(grid) == 0:
-            QMessageBox().critical(None, "Ошибка", "Сетка пуста")
-            return
+        if grid_on:
+            if len(grid) == 0:
+                QMessageBox().critical(None, "Ошибка", "Сетка пуста")
+                return
+            if not self.__is_strictly_increasing(grid):
+                QMessageBox().critical(None, "Ошибка", "Сетка должна быть строго возрастающей")
+                return
+            margin = self.__ui.margin_double_spin_box.value()
+            if margin == 0:
+                QMessageBox().critical(None, "Ошибка", "Ворота должны быть больше нуля")
+                return
+            self.__settings.setValue("grid/margin", margin)
 
         down_grid = self.__down_grid_table_model.getGrid()
         down_grid_on = self.__ui.down_grid_group_box.isChecked()
-        if down_grid_on and len(down_grid) == 0:
-            QMessageBox().critical(None, "Ошибка", "Сетка спуска пуста")
-            return
+        if down_grid_on:
+            if len(down_grid) == 0:
+                QMessageBox().critical(None, "Ошибка", "Сетка спуска пуста")
+                return
+            if down_grid_on and not self.__is_strictly_increasing(down_grid):
+                QMessageBox().critical(None, "Ошибка", "Сетка спуска должна быть строго возрастающей")
+                return
 
         self.__settings.setValue("grid/on", grid_on)
         self.__settings.setValue("grid/data", grid)

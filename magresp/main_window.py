@@ -3,10 +3,10 @@ from PyQt6.QtCore import QSettings
 from .ui_main_window import Ui_MainWindow
 from os.path import dirname
 from gtrfile import GtrFile
-import matplotlib.pyplot as plt
 from .mr_signal import MRSignal
 from .on_open_file_dialog import OnOpenFileDialog
 from .osc_main_window import OscMainWindow
+from .mr_main_window import MrMainWindow
 
 
 class MainWindow(QMainWindow):
@@ -51,14 +51,21 @@ class MainWindow(QMainWindow):
             if not settings.value("channels/dut/use_gtl_name", type=bool):
                 dut_ch_name = settings.value("channels/dut/name")
 
-            mr_signal = MRSignal.create_from_gtrfile(
+            self.__mr_signal = MRSignal.create_from_gtrfile(
                 gtr, etalon_ch_number, dut_ch_number, etalon_ch_name, dut_ch_name)
 
             block_duration = float(settings.value(
                 "ds_interval").replace(",", "."))
-            ds_mr_signal = mr_signal.downsample_by_block_averaging(
+            self.__ds_mr_signal = self.__mr_signal.downsample_by_block_averaging(
                 block_duration)
 
-            osc_win = OscMainWindow(mr_signal, ds_mr_signal, self)
+            osc_win = OscMainWindow(
+                self.__mr_signal, self.__ds_mr_signal, self)
+            osc_win.mr_settings_accepted.connect(self.on_mr_settings_accepted)
             osc_win.move(self.pos().x() + 25, self.pos().y() + 25)
             osc_win.show()
+
+    def on_mr_settings_accepted(self):
+        self.__mr_win = MrMainWindow(self.__ds_mr_signal, self)
+        self.__mr_win.move(self.pos().x() + 25, self.pos().y() + 25)
+        self.__mr_win.show()
