@@ -105,7 +105,7 @@ class Ui_OnOpenFileDialog(object):
 
     def retranslateUi(self, OnOpenFileDialog):
         _translate = QtCore.QCoreApplication.translate
-        OnOpenFileDialog.setWindowTitle(_translate("OnOpenFileDialog", "Первичная обработка"))
+        OnOpenFileDialog.setWindowTitle(_translate("OnOpenFileDialog", "Настройки первичной обработки"))
         self.etalon_settings_group_box.setTitle(_translate("OnOpenFileDialog", "Преобразование сигнала эталона"))
         self.k_label.setText(_translate("OnOpenFileDialog", "K, В/ед. изм.:"))
         self.u0_label.setText(_translate("OnOpenFileDialog", "U0, В:"))

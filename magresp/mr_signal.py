@@ -44,7 +44,9 @@ class MRSignal:
         self.k = None
         self.u0 = None
         self.parts = []
+        self.segments = {"up": [], "down": [], "top": None, "bottom": None}
         self.__parts_calculated_handlers = []
+        self.__segments_calculated_handlers = []
 
     @classmethod
     def _create_from_vectors(cls, fs, time_vector, etalon_vector, dut_vector,
@@ -106,7 +108,9 @@ class MRSignal:
             self.df[str(self.cols.etalon)] - u0) / k
 
     def calculate_parts_by_extremum(self, sequence):
-        self.parts = []
+        self.__clear_parts()
+        self.__clear_segments()
+
         if sequence == Sequence.UP:
             self.parts.append(self.df)
             self.parts[0].type = "up"
@@ -114,19 +118,20 @@ class MRSignal:
             self.parts.append(self.df)
             self.parts[0].type = "down"
         elif sequence == Sequence.UP_DOWN:
-            borderpoint = self.__get_max()[0]
-            self.parts.append(self.df.loc[:borderpoint])
-            self.parts.append(self.df.loc[borderpoint:])
+            maxi, _ = self.__get_max()
+            self.parts.append(self.df.loc[:maxi])
+            self.parts.append(self.df.loc[maxi:])
             self.parts[0].type = "up"
             self.parts[1].type = "down"
         elif sequence == Sequence.DOWN_UP:
-            borderpoint = self.__get_min()[0]
-            self.parts.append(self.df.loc[:borderpoint])
-            self.parts.append(self.df.loc[borderpoint:])
+            mini, _ = self.__get_min()
+            self.parts.append(self.df.loc[:mini])
+            self.parts.append(self.df.loc[mini:])
             self.parts[0].type = "down"
             self.parts[1].type = "up"
         else:
             raise ValueError("sequence")
+
         for handler in self.__parts_calculated_handlers:
             handler()
 
@@ -136,62 +141,95 @@ class MRSignal:
         self.__parts_calculated_handlers.append(handler)
 
     def remove_parts_calculated_handler(self, handler):
+        if handler not in self.__parts_calculated_handlers:
+            return
         self.__parts_calculated_handlers.remove(handler)
 
-    def __get_max(self):
-        m = self.df[str(self.cols.etalon_pq)].idxmax()
-        return m, self.df.loc[m, str(self.cols.etalon_pq)]
+    def add_segments_calculated_handler(self, handler):
+        if handler in self.__segments_calculated_handlers:
+            return
+        self.__segments_calculated_handlers.append(handler)
 
-    def __get_min(self):
-        m = self.df[str(self.cols.etalon_pq)].idxmin()
-        return m, self.df.loc[m, str(self.cols.etalon_pq)]
+    def remove_segments_calculated_handler(self, handler):
+        if handler not in self.__segments_calculated_handlers:
+            return
+        self.__segments_calculated_handlers.remove(handler)
 
-    def __get_segment(self, signal: pd.DataFrame, lower_limit: float, upper_limit: float):
-        ret = signal.loc[(signal[str(self.cols.etalon_pq)] >= lower_limit) &
-                         (signal[str(self.cols.etalon_pq)] <= upper_limit)]
-        return ret
+    def calculate_parts_by_grid(self, sequence, margin, grid, down_grid=None):
+        self.__clear_parts()
+        self.__clear_segments()
 
-    def __get_up_segments(self, signal, grid, sequence):
-        pass
+        down_grid_on = True
+        if down_grid is None:
+            down_grid = grid
+            down_grid_on = False
 
-    def __get_down_segments(self, signal, grid, sequence):
-        pass
-
-    def calculate_parts_by_grid(self, sequence, grid, margin, down_grid=None):
-        self.parts = []
         if sequence == Sequence.UP:
             maxi, maxv = self.__get_max()
             if maxv >= (grid[-1] - margin) and maxv <= (grid[-1] + margin):
                 pass
-            else:
+            elif maxv > (grid[-1] + margin):
                 pass
         elif sequence == Sequence.DOWN:
             mini, minv = self.__get_min()
             if minv >= (grid[0] - margin) and minv <= (grid[0] + margin):
                 pass
-            else:
+            elif minv < (grid[0] - margin):
                 pass
         elif sequence == Sequence.UP_DOWN:
             maxi, maxv = self.__get_max()
-            if maxv >= (grid[-1] - margin) and maxv <= (grid[-1] + margin):
-                top_segment = self.__get_segment(
-                    self.df, grid[-1] - margin, grid[-1] + margin)
-                top_segment_start = top_segment.iloc[[0]].index[0]
-                top_segment_end = top_segment.iloc[[-1]].index[0]
-                self.parts.append(self.df.loc[:top_segment_start])
-                self.parts.append(
-                    self.df.loc[top_segment_start:top_segment_end])
-                self.parts.append(self.df.loc[top_segment_end:])
-                self.parts[0].type = "up"
-                self.parts[1].type = "top"
-                self.parts[2].type = "down"
-            elif maxv > (grid[-1] + margin):
-                self.parts.append(self.df.loc[:maxi])
-                self.parts.append(self.df.loc[maxi:])
-                self.parts[0].type = "up"
-                self.parts[1].type = "down"
+            if grid[-1] == down_grid[-1]:
+                if maxv >= (grid[-1] - margin) and maxv <= (grid[-1] + margin):
+                    top_segment = self.__get_segment(
+                        self.df, grid[-1] - margin, grid[-1] + margin)
+                    top_segment_start = top_segment.iloc[[0]].index[0]
+                    top_segment_end = top_segment.iloc[[-1]].index[0]
+                    self.parts.append(self.df.loc[:top_segment_start])
+                    self.parts.append(
+                        self.df.loc[top_segment_start:top_segment_end])
+                    self.parts.append(self.df.loc[top_segment_end:])
+                    self.parts[0].type = "up"
+                    self.parts[1].type = "top"
+                    self.parts[2].type = "down"
+                    self.segments["top"] = top_segment
+                    self.__calculate_up_segments(margin, grid[:-1])
+                    self.__calculate_down_segments(margin, grid[:-1])
+                elif maxv > (grid[-1] + margin):
+                    self.parts.append(self.df.loc[:maxi])
+                    self.parts.append(self.df.loc[maxi:])
+                    self.parts[0].type = "up"
+                    self.parts[1].type = "down"
+                    self.__calculate_up_segments(margin, grid)
+                    self.__calculate_down_segments(margin, grid)
+                else:
+                    raise BaseException()
             else:
-                raise BaseException()
+                if maxv >= (grid[-1] - margin) and maxv <= (grid[-1] + margin):
+                    top_segment = self.__get_segment(
+                        self.df, grid[-1] - margin, grid[-1] + margin)
+                    top_segment_start = top_segment.iloc[[0]].index[0]
+                    top_segment_end = top_segment.iloc[[-1]].index[0]
+                    self.parts.append(self.df.loc[:top_segment_end])
+                    self.parts[0].type = "up"
+                elif maxv > (grid[-1] + margin):
+                    self.parts.append(self.df.loc[:maxi])
+                    self.parts[0].type = "up"
+                else:
+                    raise BaseException()
+                self.__calculate_up_segments(margin, grid)
+                if maxv >= (down_grid[-1] - margin) and maxv <= (down_grid[-1] + margin):
+                    top_segment = self.__get_segment(
+                        self.df, down_grid[-1] - margin, down_grid[-1] + margin)
+                    top_segment_start = top_segment.iloc[[0]].index[0]
+                    top_segment_end = top_segment.iloc[[-1]].index[0]
+                    self.parts.append(self.df.loc[top_segment_start:])
+                    self.parts[0].type = "down"
+                elif maxv > (down_grid[-1] + margin):
+                    self.parts.append(self.df.loc[maxi:])
+                    self.parts[0].type = "down"
+                else:
+                    raise BaseException()
+                self.__calculate_down_segments(margin, grid)
         elif sequence == Sequence.DOWN_UP:
             mini, minv = self.__get_min()
             if minv >= (grid[0] - margin) and minv <= (grid[0] + margin):
@@ -215,5 +253,56 @@ class MRSignal:
                 raise BaseException()
         else:
             raise ValueError("sequence")
+            
         for handler in self.__parts_calculated_handlers:
             handler()
+
+        for handler in self.__segments_calculated_handlers:
+            handler()
+
+    def __get_max(self):
+        m = self.df[str(self.cols.etalon_pq)].idxmax()
+        return m, self.df.loc[m, str(self.cols.etalon_pq)]
+
+    def __get_min(self):
+        m = self.df[str(self.cols.etalon_pq)].idxmin()
+        return m, self.df.loc[m, str(self.cols.etalon_pq)]
+
+    def __get_segment(self, signal: pd.DataFrame, lower_limit: float, upper_limit: float):
+        slice = signal.loc[(signal[str(self.cols.etalon_pq)] >= lower_limit) &
+                           (signal[str(self.cols.etalon_pq)] <= upper_limit)]
+        start = slice.index[0]
+        end = slice.index[-1]
+        ret = self.df.loc[start: end]
+        return ret
+
+    def __calculate_up_segments(self, margin, grid):
+        up_part = None
+        for part in self.parts:
+            if part.type == "up":
+                up_part = part
+        if up_part is None:
+            raise BaseException("Up part not found")
+        for value in grid:
+            self.segments["up"].append(self.__get_segment(
+                up_part, value - margin, value + margin))
+
+    def __calculate_down_segments(self, margin, grid):
+        down_part = None
+        for part in self.parts:
+            if part.type == "down":
+                down_part = part
+        if down_part is None:
+            raise BaseException("Down part not found")
+        for value in grid:
+            self.segments["down"].append(self.__get_segment(
+                down_part, value - margin, value + margin))
+
+    def __clear_parts(self):
+        self.parts.clear()
+
+    def __clear_segments(self):
+        self.segments["top"] = None
+        self.segments["bottom"] = None
+        self.segments["up"].clear()
+        self.segments["down"].clear()

@@ -21,6 +21,21 @@ def load_settings(reset=False):
         }
         settings.setValue("colors", colors)
 
+    if settings.value("ru_mnemonics") is None:
+        ru_mnemonics = {
+            Sequence.UP: "подъем",
+            Sequence.DOWN: "спуск",
+            Sequence.UP_DOWN: "подъем, спуск",
+            Sequence.DOWN_UP: "спуск, подъем",
+            "up": "подъем",
+            "down": "спуск",
+            "top": "верх",
+            "bottom": "низ",
+            "raw": "исходный",
+            "ds": "усредненный"
+        }
+        settings.setValue("ru_mnemonics", ru_mnemonics)
+
     if reset:
         settings.clear()
 
@@ -69,6 +84,7 @@ def load_settings(reset=False):
 
 def remove_mr_settings():
     settings = QSettings()
+    # settings.clear()
     settings.remove("sequence")
     settings.remove("grid")
 

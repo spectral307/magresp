@@ -119,16 +119,8 @@ class OnMrBuildDialog(QDialog):
             row_count, table_view, table_model)
 
     def __get_ru_mnemonics(self, value):
-        if value == Sequence.UP:
-            return "подъем"
-        elif value == Sequence.DOWN:
-            return "спуск"
-        elif value == Sequence.UP_DOWN:
-            return "подъем, спуск"
-        elif value == Sequence.DOWN_UP:
-            return "спуск, подъем"
-        else:
-            raise ValueError("value")
+        ru = self.__settings.value("ru_mnemonics", type=dict)
+        return ru[value]
 
     def __on_current_index_changed(self, i):
         self.__settings.setValue("sequence", i)

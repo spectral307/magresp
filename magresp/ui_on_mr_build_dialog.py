@@ -76,7 +76,7 @@ class Ui_OnMrBuildDialog(object):
 
     def retranslateUi(self, OnMrBuildDialog):
         _translate = QtCore.QCoreApplication.translate
-        OnMrBuildDialog.setWindowTitle(_translate("OnMrBuildDialog", "Построение АХ"))
+        OnMrBuildDialog.setWindowTitle(_translate("OnMrBuildDialog", "Настройки построения АХ"))
         self.sequence_label.setText(_translate("OnMrBuildDialog", "Порядок изменения физ. величины:"))
         self.grid_group_box.setTitle(_translate("OnMrBuildDialog", "Сетка"))
         self.down_grid_group_box.setTitle(_translate("OnMrBuildDialog", "Отдельная сетка для спуска"))

@@ -39,7 +39,7 @@ class MrMainWindow(QMainWindow):
             margin = self.__settings.value("grid/margin", type=float)
             grid = [float(item)
                     for item in self.__settings.value("grid/data", type=list)]
-            self.__ds_mr_signal.calculate_parts_by_grid(sequence, grid, margin)
+            self.__ds_mr_signal.calculate_parts_by_grid(sequence, margin, grid)
         else:
             self.__ds_mr_signal.calculate_parts_by_extremum(sequence)
 

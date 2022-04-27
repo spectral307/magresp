@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QApplication
 from PyQt6.QtCore import QSettings
 from .ui_main_window import Ui_MainWindow
-from os.path import dirname
+from os.path import dirname, basename
 from gtrfile import GtrFile
 from .mr_signal import MRSignal
 from .on_open_file_dialog import OnOpenFileDialog
@@ -18,6 +18,10 @@ class MainWindow(QMainWindow):
         self.__ui.open_file_action.triggered.connect(self.open_file)
         self.__ui.exit_action.triggered.connect(self.exit)
 
+        self.__filename = None
+        self.__osc_win = None
+        self.__mr_win = None
+
     def exit(self):
         QApplication.quit()
 
@@ -32,12 +36,20 @@ class MainWindow(QMainWindow):
             return
 
         record_dir = dirname(record_path)
+        self.__filename = basename(record_path)
         if record_dir != settings.value("default_dir"):
             settings.setValue("default_dir", record_dir)
 
         res = OnOpenFileDialog().exec()
 
         if res == 1:
+            if self.__mr_win is not None:
+                self.__mr_win.close()
+                self.__mr_win = None
+            if self.__osc_win is not None:
+                self.__osc_win.close()
+                self.__osc_win = None
+
             gtr = GtrFile(record_path)
 
             etalon_ch_number = settings.value("channels/etalon/ordinal")
@@ -59,13 +71,18 @@ class MainWindow(QMainWindow):
             self.__ds_mr_signal = self.__mr_signal.downsample_by_block_averaging(
                 block_duration)
 
-            osc_win = OscMainWindow(
+            self.__osc_win = OscMainWindow(
                 self.__mr_signal, self.__ds_mr_signal, self)
-            osc_win.mr_settings_accepted.connect(self.on_mr_settings_accepted)
-            osc_win.move(self.pos().x() + 25, self.pos().y() + 25)
-            osc_win.show()
+            self.__osc_win.mr_settings_accepted.connect(
+                self.on_mr_settings_accepted)
+            self.__osc_win.move(self.pos().x() + 25, self.pos().y() + 25)
+            self.__osc_win.setWindowTitle(f"Осциллограмма: {self.__filename}")
+            self.__osc_win.show()
+
+            self.__ui.statusbar.showMessage(f"Открыт: {record_path}")
 
     def on_mr_settings_accepted(self):
         self.__mr_win = MrMainWindow(self.__ds_mr_signal, self)
         self.__mr_win.move(self.pos().x() + 25, self.pos().y() + 25)
+        self.__mr_win.setWindowTitle(f"АХ: {self.__filename}")
         self.__mr_win.show()

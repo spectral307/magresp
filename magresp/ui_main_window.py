@@ -41,7 +41,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Амплитудная характеристика"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Построение амплитудной характеристики"))
         self.menu.setTitle(_translate("MainWindow", "&Файл"))
         self.open_file_action.setText(_translate("MainWindow", "Открыть..."))
         self.open_file_action.setShortcut(_translate("MainWindow", "Ctrl+O"))
