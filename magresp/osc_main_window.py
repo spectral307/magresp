@@ -94,7 +94,7 @@ class OscMainWindow(QMainWindow):
                     self.parts_calculated_handler)
             self.mr_settings_accepted.emit()
 
-    def segments_calculated_handler(self):
+    def __remove_lines(self):
         for line in self.__ax1_lines:
             self.__ax1.lines.remove(line)
         for line in self.__ax2_lines:
@@ -102,6 +102,9 @@ class OscMainWindow(QMainWindow):
 
         self.__ax1_lines.clear()
         self.__ax2_lines.clear()
+
+    def segments_calculated_handler(self):
+        self.__remove_lines()
 
         legend_lines = []
         legend_labels = []
@@ -174,13 +177,7 @@ class OscMainWindow(QMainWindow):
         self.__canvas.draw_idle()
 
     def parts_calculated_handler(self):
-        for line in self.__ax1_lines:
-            self.__ax1.lines.remove(line)
-        for line in self.__ax2_lines:
-            self.__ax2.lines.remove(line)
-
-        self.__ax1_lines.clear()
-        self.__ax2_lines.clear()
+        self.__remove_lines()
 
         legend_lines = []
         legend_labels = []
@@ -196,10 +193,12 @@ class OscMainWindow(QMainWindow):
                                      marker=".", label=self.__ru[part.type])
             self.__ax1_lines.append(line1)
             self.__ax2_lines.append(line2)
+            legend_lines.append(
+                Line2D([0], [0], c=self.__colors[part.type], marker="."))
+            legend_labels.append(self.__ru[part.type])
 
-        legend_lines.append(
-            Line2D([0], [0], c=self.__colors["top"], marker="."))
-        legend_labels.append(self.__ru["top"])  # TODO: доделать
+        self.__ax1.legend(legend_lines, legend_labels, loc="upper right")
+        self.__ax2.legend(legend_lines, legend_labels, loc="upper right")
 
         self.__canvas.draw_idle()
 

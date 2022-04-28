@@ -82,6 +82,9 @@ class MainWindow(QMainWindow):
             self.__ui.statusbar.showMessage(f"Открыт: {record_path}")
 
     def on_mr_settings_accepted(self):
+        if self.__mr_win is not None:
+            self.__mr_win.close()
+            self.__mr_win = None
         self.__mr_win = MrMainWindow(self.__ds_mr_signal, self)
         self.__mr_win.move(self.pos().x() + 25, self.pos().y() + 25)
         self.__mr_win.setWindowTitle(f"АХ: {self.__filename}")

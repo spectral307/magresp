@@ -253,7 +253,7 @@ class MRSignal:
                 raise BaseException()
         else:
             raise ValueError("sequence")
-            
+
         for handler in self.__parts_calculated_handlers:
             handler()
 
