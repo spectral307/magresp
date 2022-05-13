@@ -86,6 +86,6 @@ class MainWindow(QMainWindow):
             self.__mr_win.close()
             self.__mr_win = None
         self.__mr_win = MrMainWindow(self.__ds_mr_signal, self)
-        self.__mr_win.move(self.pos().x() + 25, self.pos().y() + 25)
+        self.__mr_win.move(self.pos().x() + 50, self.pos().y() + 50)
         self.__mr_win.setWindowTitle(f"АХ: {self.__filename}")
         self.__mr_win.show()

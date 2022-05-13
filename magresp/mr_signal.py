@@ -44,9 +44,11 @@ class MRSignal:
         self.k = None
         self.u0 = None
         self.parts = []
-        self.segments = {"up": [], "down": [], "top": None, "bottom": None}
+        self.segments = {"up": [], "down": [], "top": [], "bottom": []}
+        self.mr_values = {"up": [], "down": [], "top": [], "bottom": []}
         self.__parts_calculated_handlers = []
         self.__segments_calculated_handlers = []
+        self.__mr_values_calculated_handlers = []
 
     @classmethod
     def _create_from_vectors(cls, fs, time_vector, etalon_vector, dut_vector,
@@ -86,17 +88,23 @@ class MRSignal:
         return by_function
 
     def downsample_by_block_averaging(self, block_duration: float, drop_last=True):
+        signal_duration = self.df.iloc[-1, self.df.columns.get_loc(str(
+            self.cols.time))] - self.df.iloc[0, self.df.columns.get_loc(str(self.cols.time))]
+        if block_duration > signal_duration:
+            raise ValueError("Block duration is larger than signal duration")
+
         agg_arg = {
             str(self.cols.time): self.__get_avg_time_block_function(block_duration)}
         for col in self.df.columns:
             if col != str(self.cols.time):
                 agg_arg[col] = "mean"
+
         ds_df = self.df.groupby(by=self.get_by_function(
             self.fs, block_duration)).agg(agg_arg)
-        # import numpy as np
-        # print(np.all(np.diff(ds_df.index) == 1))  # TODO: delete
+
         if drop_last:
             ds_df.drop(ds_df.index[-1], inplace=True)
+
         return MRSignal(1 / block_duration, ds_df,
                         self.cols.time, self.cols.etalon, self.cols.dut)
 
@@ -155,7 +163,17 @@ class MRSignal:
             return
         self.__segments_calculated_handlers.remove(handler)
 
-    def calculate_parts_by_grid(self, sequence, margin, grid, down_grid=None):
+    def add_mr_values_calculated_handler(self, handler):
+        if handler in self.__mr_values_calculated_handlers:
+            return
+        self.__mr_values_calculated_handlers.append(handler)
+
+    def remove_mr_values_calculated_handler(self, handler):
+        if handler not in self.__mr_values_calculated_handlers:
+            return
+        self.__mr_values_calculated_handlers.remove(handler)
+
+    def calculate_parts_and_segments_by_grid(self, sequence, margin, grid, down_grid=None):
         self.__clear_parts()
         self.__clear_segments()
 
@@ -191,7 +209,7 @@ class MRSignal:
                     self.parts[0].type = "up"
                     self.parts[1].type = "top"
                     self.parts[2].type = "down"
-                    self.segments["top"] = top_segment
+                    self.segments["top"].append(top_segment)
                     self.__calculate_up_segments(margin, grid[:-1])
                     self.__calculate_down_segments(margin, grid[:-1])
                 elif maxv > (grid[-1] + margin):
@@ -260,6 +278,21 @@ class MRSignal:
         for handler in self.__segments_calculated_handlers:
             handler()
 
+        self.__pick_mr_values()
+
+    def __pick_mr_values(self):
+        self.__clear_mr_values()
+        for part in self.parts:
+            for segment in self.segments[part.type]:
+                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                # self.mr_values - лист с датафреймами из одного значения
+                # построить на осях будет тяжело
+                # заменить на маску?
+                self.mr_values[part.type].append(segment.iloc[[-26]])
+
+        for handler in self.__mr_values_calculated_handlers:
+            handler()
+
     def __get_max(self):
         m = self.df[str(self.cols.etalon_pq)].idxmax()
         return m, self.df.loc[m, str(self.cols.etalon_pq)]
@@ -302,7 +335,13 @@ class MRSignal:
         self.parts.clear()
 
     def __clear_segments(self):
-        self.segments["top"] = None
-        self.segments["bottom"] = None
+        self.segments["top"].clear()
+        self.segments["bottom"].clear()
         self.segments["up"].clear()
         self.segments["down"].clear()
+
+    def __clear_mr_values(self):
+        self.mr_values["top"].clear()
+        self.mr_values["bottom"].clear()
+        self.mr_values["up"].clear()
+        self.mr_values["down"].clear()

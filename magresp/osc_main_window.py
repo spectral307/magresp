@@ -1,11 +1,12 @@
+from configparser import SafeConfigParser
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout
 from PyQt6.QtCore import Qt, QSettings, pyqtSignal
 from .ui_osc_main_window import Ui_OscMainWindow
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvas, NavigationToolbar2QT
 from .on_mr_build_dialog import OnMrBuildDialog
-import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from snap_cursor_stack import SnapCursorStack
 
 
 class OscMainWindow(QMainWindow):
@@ -61,6 +62,8 @@ class OscMainWindow(QMainWindow):
         self.__ax1_lines.append(line1)
         self.__ax2_lines.append(line2)
 
+        self.__snap_cursor_stack = None
+
         if self.__settings.value("show_raw_signals", type=bool):
             mr_signal.calculate_etalon_pq_col(
                 self.__settings.value("etalon/unit"),
@@ -88,10 +91,12 @@ class OscMainWindow(QMainWindow):
         if res == 1:
             if self.__settings.value("grid/on", type=bool):
                 self.__ds_mr_signal.add_segments_calculated_handler(
-                    self.segments_calculated_handler)
+                    self.__segments_calculated_handler)
+                self.__ds_mr_signal.add_mr_values_calculated_handler(
+                    self.__mr_values_calculated_handler)
             else:
                 self.__ds_mr_signal.add_parts_calculated_handler(
-                    self.parts_calculated_handler)
+                    self.__parts_calculated_handler)
             self.mr_settings_accepted.emit()
 
     def __remove_lines(self):
@@ -103,81 +108,56 @@ class OscMainWindow(QMainWindow):
         self.__ax1_lines.clear()
         self.__ax2_lines.clear()
 
-    def segments_calculated_handler(self):
+    def __segments_calculated_handler(self):
         self.__remove_lines()
+        if self.__snap_cursor_stack is not None:
+            self.__snap_cursor_stack.clear()
+            self.__snap_cursor_stack = None
 
         legend_lines = []
         legend_labels = []
 
-        for segment in self.__ds_mr_signal.segments["up"]:
-            line1, = self.__ax1.plot(segment[str(self.__ds_mr_signal.cols.time)],
-                                     segment[str(
-                                         self.__ds_mr_signal.cols.etalon_pq)],
-                                     c=self.__colors["up"], marker=".")
-            line2, = self.__ax2.plot(segment[str(self.__ds_mr_signal.cols.time)],
-                                     segment[str(
-                                         self.__ds_mr_signal.cols.dut)],
-                                     c=self.__colors["up"], marker=".")
-            self.__ax1_lines.append(line1)
-            self.__ax2_lines.append(line2)
-        if len(self.__ds_mr_signal.segments["up"]) > 0:
-            legend_lines.append(
-                Line2D([0], [0], c=self.__colors["up"], marker="."))
-            legend_labels.append(self.__ru["up"])
-
-        for segment in self.__ds_mr_signal.segments["down"]:
-            line1, = self.__ax1.plot(segment[str(self.__ds_mr_signal.cols.time)],
-                                     segment[str(
-                                         self.__ds_mr_signal.cols.etalon_pq)],
-                                     c=self.__colors["down"], marker=".")
-            line2, = self.__ax2.plot(segment[str(self.__ds_mr_signal.cols.time)],
-                                     segment[str(
-                                         self.__ds_mr_signal.cols.dut)],
-                                     c=self.__colors["down"], marker=".")
-            self.__ax1_lines.append(line1)
-            self.__ax2_lines.append(line2)
-        if len(self.__ds_mr_signal.segments["down"]) > 0:
-            legend_lines.append(
-                Line2D([0], [0], c=self.__colors["down"], marker="."))
-            legend_labels.append(self.__ru["down"])
-
-        if (segment := self.__ds_mr_signal.segments["top"]) is not None:
-            line1, = self.__ax1.plot(segment[str(self.__ds_mr_signal.cols.time)],
-                                     segment[str(
-                                         self.__ds_mr_signal.cols.etalon_pq)],
-                                     c=self.__colors["top"], marker=".")
-            line2, = self.__ax2.plot(segment[str(self.__ds_mr_signal.cols.time)],
-                                     segment[str(
-                                         self.__ds_mr_signal.cols.dut)],
-                                     c=self.__colors["top"], marker=".")
-            self.__ax1_lines.append(line1)
-            self.__ax2_lines.append(line2)
-            legend_lines.append(
-                Line2D([0], [0], c=self.__colors["top"], marker="."))
-            legend_labels.append(self.__ru["top"])
-
-        if (segment := self.__ds_mr_signal.segments["bottom"]) is not None:
-            line1, = self.__ax1.plot(segment[str(self.__ds_mr_signal.cols.time)],
-                                     segment[str(
-                                         self.__ds_mr_signal.cols.etalon_pq)],
-                                     c=self.__colors["bottom"], marker=".")
-            line2, = self.__ax2.plot(segment[str(self.__ds_mr_signal.cols.time)],
-                                     segment[str(
-                                         self.__ds_mr_signal.cols.dut)],
-                                     c=self.__colors["bottom"], marker=".")
-            self.__ax1_lines.append(line1)
-            self.__ax2_lines.append(line2)
-            legend_lines.append(
-                Line2D([0], [0], c=self.__colors["bottom"], marker="."))
-            legend_labels.append(self.__ru["bottom"])
+        for part_type in self.__ds_mr_signal.segments:
+            for segment in self.__ds_mr_signal.segments[part_type]:
+                line1, = self.__ax1.plot(segment[str(self.__ds_mr_signal.cols.time)],
+                                         segment[str(
+                                             self.__ds_mr_signal.cols.etalon_pq)],
+                                         c=self.__colors[part_type], marker=".")
+                line2, = self.__ax2.plot(segment[str(self.__ds_mr_signal.cols.time)],
+                                         segment[str(
+                                             self.__ds_mr_signal.cols.dut)],
+                                         c=self.__colors[part_type], marker=".")
+                self.__ax1_lines.append(line1)
+                self.__ax2_lines.append(line2)
+            if len(self.__ds_mr_signal.segments[part_type]) > 0:
+                legend_lines.append(
+                    Line2D([0], [0], c=self.__colors[part_type], marker="."))
+                legend_labels.append(self.__ru[part_type])
 
         self.__ax1.legend(legend_lines, legend_labels, loc="upper right")
         self.__ax2.legend(legend_lines, legend_labels, loc="upper right")
 
         self.__canvas.draw_idle()
 
-    def parts_calculated_handler(self):
+    def __mr_values_calculated_handler(self):
+        self.__snap_cursor_stack = SnapCursorStack(
+            [self.__ax1, self.__ax2],
+            self.__ds_mr_signal.df[str(self.__ds_mr_signal.cols.time)],
+            [self.__ds_mr_signal.df[str(self.__ds_mr_signal.cols.etalon_pq)],
+             self.__ds_mr_signal.df[str(self.__ds_mr_signal.cols.dut)]])
+
+        for part_type in self.__ds_mr_signal.mr_values:
+            for mr_value in self.__ds_mr_signal.mr_values[part_type]:
+                self.__snap_cursor_stack.add_cursor(
+                    mr_value.index[0], color=self.__colors[part_type])
+
+        self.__canvas.draw_idle()
+
+    def __parts_calculated_handler(self):
         self.__remove_lines()
+        if self.__snap_cursor_stack is not None:
+            self.__snap_cursor_stack.clear()
+            self.__snap_cursor_stack = None
 
         legend_lines = []
         legend_labels = []
@@ -204,5 +184,9 @@ class OscMainWindow(QMainWindow):
 
     def closeEvent(self, a0):
         self.__ds_mr_signal.remove_parts_calculated_handler(
-            self.parts_calculated_handler)
+            self.__parts_calculated_handler)
+        self.__ds_mr_signal.remove_segments_calculated_handler(
+            self.__segments_calculated_handler)
+        self.__ds_mr_signal.remove_mr_values_calculated_handler(
+            self.__mr_values_calculated_handler)
         return super().closeEvent(a0)
