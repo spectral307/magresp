@@ -18,6 +18,8 @@ class MrMainWindow(QMainWindow):
         self.__ui = Ui_MrMainWindow()
         self.__ui.setupUi(self)
 
+        self.__ru = self.__settings.value("ru_mnemonics", type=dict)
+
         self.__colors = self.__settings.value("colors", type=dict)
 
         figure = Figure(figsize=(5, 3))
@@ -41,8 +43,8 @@ class MrMainWindow(QMainWindow):
             margin = self.__settings.value("grid/margin", type=float)
             grid = [float(item)
                     for item in self.__settings.value("grid/data", type=list)]
-            self.__ds_mr_signal.add_mr_values_calculated_handler(
-                self.__mr_values_calculated_handler)
+            self.__ds_mr_signal.add_mr_calculated_handler(
+                self.__mr_calculated_handler)
             self.__ds_mr_signal.calculate_parts_and_segments_by_grid(
                 sequence, margin, grid)
         else:
@@ -70,21 +72,34 @@ class MrMainWindow(QMainWindow):
             self.__ax.lines.remove(line)
         self.__lines.clear()
 
-    def __mr_values_calculated_handler(self):
+    def __mr_calculated_handler(self):
         self.__clear_lines()
 
-        for part_type in self.__ds_mr_signal.mr_values:
-            self.__ax.plot(self.__ds_mr_signal.mr_values[part_type][str(
+        if (inds := self.__ds_mr_signal.get_up_mr_inds()) is not None:
+            line, = self.__ax.plot(self.__ds_mr_signal.df.loc[inds, str(
                 self.__ds_mr_signal.cols.etalon_pq)],
-                self.__ds_mr_signal.mr_values[part_type][str(
+                self.__ds_mr_signal.df.loc[inds, str(
                     self.__ds_mr_signal.cols.dut)],
-                labe=part_type, color=self.__colors[part_type])
+                label=self.__ru["up"], color=self.__colors["up"],
+                marker=".")
+            self.__lines.append(line)
+
+        if (inds := self.__ds_mr_signal.get_down_mr_inds()) is not None:
+            line, = self.__ax.plot(self.__ds_mr_signal.df.loc[inds, str(
+                self.__ds_mr_signal.cols.etalon_pq)],
+                self.__ds_mr_signal.df.loc[inds, str(
+                    self.__ds_mr_signal.cols.dut)],
+                label=self.__ru["down"], color=self.__colors["down"],
+                marker=".")
+            self.__lines.append(line)
 
         self.__ax.legend()
+
+        self.__canvas.draw_idle()
 
     def closeEvent(self, a0):
         self.__ds_mr_signal.remove_parts_calculated_handler(
             self.__parts_calculated_handler)
-        self.__ds_mr_signal.remove_mr_values_calculated_handler(
-            self.__mr_values_calculated_handler)
+        self.__ds_mr_signal.remove_mr_calculated_handler(
+            self.__mr_calculated_handler)
         super().closeEvent(a0)

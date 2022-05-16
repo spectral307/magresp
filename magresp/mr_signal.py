@@ -43,12 +43,17 @@ class MRSignal:
         self.fs = fs
         self.k = None
         self.u0 = None
+        self.__current_sequence = None
         self.parts = []
         self.segments = {"up": [], "down": [], "top": [], "bottom": []}
         self.mr_values = {"up": [], "down": [], "top": [], "bottom": []}
+        self.__up_mr_lims = None
+        self.__down_mr_lims = None
+        self.__mr = []
         self.__parts_calculated_handlers = []
         self.__segments_calculated_handlers = []
         self.__mr_values_calculated_handlers = []
+        self.__mr_calculated_handlers = []
 
     @classmethod
     def _create_from_vectors(cls, fs, time_vector, etalon_vector, dut_vector,
@@ -118,6 +123,9 @@ class MRSignal:
     def calculate_parts_by_extremum(self, sequence):
         self.__clear_parts()
         self.__clear_segments()
+        self.__clear_mr_values()
+        self.__clear_mr()
+        self.__current_sequence = None
 
         if sequence == Sequence.UP:
             self.parts.append(self.df)
@@ -173,9 +181,23 @@ class MRSignal:
             return
         self.__mr_values_calculated_handlers.remove(handler)
 
+    def add_mr_calculated_handler(self, handler):
+        if handler in self.__mr_calculated_handlers:
+            return
+        self.__mr_calculated_handlers.append(handler)
+
+    def remove_mr_calculated_handler(self, handler):
+        if handler not in self.__mr_calculated_handlers:
+            return
+        self.__mr_calculated_handlers.remove(handler)
+
     def calculate_parts_and_segments_by_grid(self, sequence, margin, grid, down_grid=None):
         self.__clear_parts()
         self.__clear_segments()
+        self.__clear_mr_values()
+        self.__clear_mr()
+
+        self.__current_sequence = sequence
 
         down_grid_on = True
         if down_grid is None:
@@ -278,20 +300,86 @@ class MRSignal:
         for handler in self.__segments_calculated_handlers:
             handler()
 
-        self.__pick_mr_values()
+        self.__pick_mr_values(sequence)
 
-    def __pick_mr_values(self):
-        self.__clear_mr_values()
+    def __pick_mr_values(self, sequence):
+        self.__clear_mr()
+
         for part in self.parts:
             for segment in self.segments[part.type]:
-                # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                # self.mr_values - лист с датафреймами из одного значения
-                # построить на осях будет тяжело
-                # заменить на маску?
-                self.mr_values[part.type].append(segment.iloc[[-26]])
+                picked_value = segment.iloc[[-26]]
+                self.mr_values[part.type].append(picked_value)
+            self.mr_values[part.type].sort(key=lambda item: item.index[0])
+
+        if sequence == Sequence.UP_DOWN:
+            self.__mr.extend(self.mr_values["up"])
+            up_mr_left_lim = 0
+            up_mr_right_lim = len(self.mr_values["up"])
+            down_mr_left_lim = len(self.mr_values["up"])
+            down_mr_right_lim = len(
+                self.mr_values["up"]) + len(self.mr_values["down"])
+            if len(self.mr_values["top"]) > 0:
+                self.__mr.append(self.mr_values["top"][0])
+                up_mr_right_lim += 1
+                down_mr_right_lim += 1
+            self.__mr.extend(self.mr_values["down"])
+            self.__up_mr_lims = (up_mr_left_lim, up_mr_right_lim)
+            self.__down_mr_lims = (down_mr_left_lim, down_mr_right_lim)
+        elif sequence == Sequence.DOWN_UP:
+            raise NotImplementedError()
+        elif sequence == Sequence.UP:
+            raise NotImplementedError()
+        elif sequence == Sequence.DOWN:
+            raise NotImplementedError()
+        else:
+            raise ValueError("sequence")
 
         for handler in self.__mr_values_calculated_handlers:
             handler()
+
+        for handler in self.__mr_calculated_handlers:
+            handler()
+
+    def set_mr_value(self, mr_value_ind, new_xdata_ind):
+        print("===> set_mr_value:")
+        print("mr_value_ind:", mr_value_ind)
+        print("new_xdata_ind:", new_xdata_ind)
+        if len(self.__mr) == 0:
+            raise BaseException()
+
+        self.__mr[mr_value_ind] = self.df.loc[[new_xdata_ind]]
+
+        print("MR:", self.__mr)
+        for item in self.__mr:
+            print(type(item))
+
+        print(self.get_up_mr())
+        print(self.get_down_mr())
+        print(self.get_up_mr_inds())
+        print(self.get_down_mr_inds())
+
+        for handler in self.__mr_calculated_handlers:
+            handler()
+
+    def get_up_mr(self):
+        if self.__up_mr_lims is None:
+            return None
+        return self.__mr[self.__up_mr_lims[0]:self.__up_mr_lims[1]]
+
+    def get_up_mr_inds(self):
+        if self.__up_mr_lims is None:
+            return None
+        return [item.index[0] for item in self.get_up_mr()]
+
+    def get_down_mr(self):
+        if self.__down_mr_lims is None:
+            return None
+        return self.__mr[self.__down_mr_lims[0]:self.__down_mr_lims[1]]
+
+    def get_down_mr_inds(self):
+        if self.__down_mr_lims is None:
+            return None
+        return [item.index[0] for item in self.get_down_mr()]
 
     def __get_max(self):
         m = self.df[str(self.cols.etalon_pq)].idxmax()
@@ -345,3 +433,8 @@ class MRSignal:
         self.mr_values["bottom"].clear()
         self.mr_values["up"].clear()
         self.mr_values["down"].clear()
+
+    def __clear_mr(self):
+        self.__mr.clear()
+        self.__up_mr_lims = None
+        self.__down_mr_lims = None

@@ -140,11 +140,17 @@ class OscMainWindow(QMainWindow):
         self.__canvas.draw_idle()
 
     def __mr_values_calculated_handler(self):
+        if self.__snap_cursor_stack is not None:
+            self.__snap_cursor_stack.clear()
+
         self.__snap_cursor_stack = SnapCursorStack(
             [self.__ax1, self.__ax2],
             self.__ds_mr_signal.df[str(self.__ds_mr_signal.cols.time)],
             [self.__ds_mr_signal.df[str(self.__ds_mr_signal.cols.etalon_pq)],
              self.__ds_mr_signal.df[str(self.__ds_mr_signal.cols.dut)]])
+
+        self.__snap_cursor_stack.add_cursors_moved_handler(
+            self.__cursors_moved_handler)
 
         for part_type in self.__ds_mr_signal.mr_values:
             for mr_value in self.__ds_mr_signal.mr_values[part_type]:
@@ -152,6 +158,12 @@ class OscMainWindow(QMainWindow):
                     mr_value.index[0], color=self.__colors[part_type])
 
         self.__canvas.draw_idle()
+
+    def __cursors_moved_handler(self, i, v):
+        print(i, v)
+        print(self.__snap_cursor_stack.get_cursor_xdata())
+        print(self.__snap_cursor_stack.get_cursor_xdata_inds())
+        self.__ds_mr_signal.set_mr_value(i, v)
 
     def __parts_calculated_handler(self):
         self.__remove_lines()
@@ -189,4 +201,6 @@ class OscMainWindow(QMainWindow):
             self.__segments_calculated_handler)
         self.__ds_mr_signal.remove_mr_values_calculated_handler(
             self.__mr_values_calculated_handler)
+        if self.__snap_cursor_stack is not None:
+            self.__snap_cursor_stack.clear()
         return super().closeEvent(a0)

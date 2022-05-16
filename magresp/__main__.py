@@ -29,8 +29,8 @@ def load_settings(reset=False):
             Sequence.DOWN_UP: "спуск, подъем",
             "up": "подъем",
             "down": "спуск",
-            "top": "верх",
-            "bottom": "низ",
+            "top": "общий верх",
+            "bottom": "общий низ",
             "raw": "исходный",
             "ds": "усредненный"
         }
