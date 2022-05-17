@@ -1,6 +1,8 @@
+from lib2to3.pytree import Base
 import pandas as pd
 from typing import NamedTuple
 from .sequence import Sequence
+from scipy.interpolate import CubicSpline
 
 
 class column(NamedTuple):
@@ -44,16 +46,21 @@ class MRSignal:
         self.k = None
         self.u0 = None
         self.__current_sequence = None
+        self.__current_grid = None
+        self.__current_down_grid = None
+        self.__interpolate = False
         self.parts = []
         self.segments = {"up": [], "down": [], "top": [], "bottom": []}
         self.mr_values = {"up": [], "down": [], "top": [], "bottom": []}
         self.__up_mr_lims = None
         self.__down_mr_lims = None
         self.__mr = []
+        self.interpolated_mr = {}
         self.__parts_calculated_handlers = []
         self.__segments_calculated_handlers = []
         self.__mr_values_calculated_handlers = []
         self.__mr_calculated_handlers = []
+        self.__mr_interpolated_handlers = []
 
     @classmethod
     def _create_from_vectors(cls, fs, time_vector, etalon_vector, dut_vector,
@@ -126,6 +133,10 @@ class MRSignal:
         self.__clear_mr_values()
         self.__clear_mr()
         self.__current_sequence = None
+        self.__interpolate = False
+        self.__current_grid = None
+        self.__current_down_grid = None
+        self.interpolated_mr.clear()
 
         if sequence == Sequence.UP:
             self.parts.append(self.df)
@@ -191,31 +202,76 @@ class MRSignal:
             return
         self.__mr_calculated_handlers.remove(handler)
 
-    def calculate_parts_and_segments_by_grid(self, sequence, margin, grid, down_grid=None):
+    def add_mr_interpolated_handler(self, handler):
+        if handler in self.__mr_interpolated_handlers:
+            return
+        self.__mr_interpolated_handlers.append(handler)
+
+    def remove_mr_interpolated_handler(self, handler):
+        if handler not in self.__mr_interpolated_handlers:
+            return
+        self.__mr_interpolated_handlers.remove(handler)
+
+    def calculate_parts_and_segments_by_grid(self, sequence, margin, detector, grid, down_grid=None, interpolate=False):
         self.__clear_parts()
         self.__clear_segments()
         self.__clear_mr_values()
         self.__clear_mr()
+        self.interpolated_mr.clear()
 
         self.__current_sequence = sequence
+        self.__interpolate = interpolate
 
         down_grid_on = True
         if down_grid is None:
             down_grid = grid
             down_grid_on = False
 
+        self.__current_grid = grid
+        self.__current_down_grid = down_grid
+
         if sequence == Sequence.UP:
             maxi, maxv = self.__get_max()
             if maxv >= (grid[-1] - margin) and maxv <= (grid[-1] + margin):
-                pass
+                bottom_segment = self.__get_segment(
+                    self.df, grid[0] - margin, grid[0] + margin)
+                bottom_segment_start = bottom_segment.iloc[[0]].index[0]
+                bottom_segment_end = bottom_segment.iloc[[-1]].index[0]
+                top_segment = self.__get_segment(
+                    self.df, grid[-1] - margin, grid[-1] + margin)
+                top_segment_start = top_segment.iloc[[0]].index[0]
+                top_segment_end = top_segment.iloc[[-1]].index[0]
+                self.parts.append(
+                    self.df.loc[bottom_segment_start:top_segment_end])
+                self.parts[0].type = "up"
+                self.__calculate_up_segments(margin, grid)
             elif maxv > (grid[-1] + margin):
-                pass
+                self.parts.append(self.df.loc[:maxi])
+                self.parts[0].type = "up"
+                self.__calculate_up_segments(margin, grid)
+            else:
+                raise BaseException()
         elif sequence == Sequence.DOWN:
             mini, minv = self.__get_min()
-            if minv >= (grid[0] - margin) and minv <= (grid[0] + margin):
-                pass
-            elif minv < (grid[0] - margin):
-                pass
+            if minv >= (down_grid[0] - margin) and minv <= (down_grid[0] + margin):
+                bottom_segment = self.__get_segment(
+                    self.df, down_grid[0] - margin, down_grid[0] + margin)
+                bottom_segment_start = bottom_segment.iloc[[0]].index[0]
+                bottom_segment_end = bottom_segment.iloc[[-1]].index[0]
+                top_segment = self.__get_segment(
+                    self.df, down_grid[-1] - margin, down_grid[-1] + margin)
+                top_segment_start = top_segment.iloc[[0]].index[0]
+                top_segment_end = top_segment.iloc[[-1]].index[0]
+                self.parts.append(
+                    self.df.loc[top_segment_start:bottom_segment_end])
+                self.parts[0].type = "down"
+                self.__calculate_down_segments(margin, down_grid)
+            elif minv < (down_grid[0] - margin):
+                self.parts.append(self.df.loc[:mini])
+                self.parts[0].type = "down"
+                self.__calculate_down_segments(margin, down_grid)
+            else:
+                raise BaseException()
         elif sequence == Sequence.UP_DOWN:
             maxi, maxv = self.__get_max()
             if grid[-1] == down_grid[-1]:
@@ -263,34 +319,62 @@ class MRSignal:
                     top_segment_start = top_segment.iloc[[0]].index[0]
                     top_segment_end = top_segment.iloc[[-1]].index[0]
                     self.parts.append(self.df.loc[top_segment_start:])
-                    self.parts[0].type = "down"
+                    self.parts[1].type = "down"
                 elif maxv > (down_grid[-1] + margin):
                     self.parts.append(self.df.loc[maxi:])
+                    self.parts[1].type = "down"
+                else:
+                    raise BaseException()
+                self.__calculate_down_segments(margin, down_grid)
+        elif sequence == Sequence.DOWN_UP:
+            mini, minv = self.__get_min()
+            if grid[0] == down_grid[0]:
+                if minv >= (grid[0] - margin) and minv <= (grid[0] + margin):
+                    bottom_segment = self.__get_segment(
+                        self.df, grid[0] - margin, grid[0] + margin)
+                    bottom_segment_start = bottom_segment.iloc[[0]].index[0]
+                    bottom_segment_end = bottom_segment.iloc[[-1]].index[0]
+                    self.parts.append(self.df.loc[:bottom_segment_start])
+                    self.parts.append(
+                        self.df.loc[bottom_segment_start:bottom_segment_end])
+                    self.parts.append(self.df.loc[bottom_segment_end:])
+                    self.parts[0].type = "down"
+                    self.parts[1].type = "bottom"
+                    self.parts[2].type = "up"
+                elif minv < (grid[0] - margin):
+                    self.parts.append(self.df.loc[:mini])
+                    self.parts.append(self.df.loc[mini:])
+                    self.parts[0].type = "down"
+                    self.parts[1].type = "up"
+                else:
+                    raise BaseException()
+            else:
+                if minv >= (down_grid[0] - margin) and minv <= (down_grid[0] + margin):
+                    bottom_segment = self.__get_segment(
+                        self.df, down_grid[0] - margin, down_grid[0] + margin)
+                    bottom_segment_start = bottom_segment.iloc[[0]].index[0]
+                    bottom_segment_end = bottom_segment.iloc[[-1]].index[0]
+                    self.parts.append(self.df.loc[:bottom_segment_end])
+                    self.parts[0].type = "down"
+                elif minv < (down_grid[0] - margin):
+                    self.parts.append(self.df.loc[:mini])
                     self.parts[0].type = "down"
                 else:
                     raise BaseException()
-                self.__calculate_down_segments(margin, grid)
-        elif sequence == Sequence.DOWN_UP:
-            mini, minv = self.__get_min()
-            if minv >= (grid[0] - margin) and minv <= (grid[0] + margin):
-                bottom_segment = self.__get_segment(
-                    self.df, grid[0] - margin, grid[0] + margin)
-                bottom_segment_start = bottom_segment.iloc[[0]].index[0]
-                bottom_segment_end = bottom_segment.iloc[[-1]].index[0]
-                self.parts.append(self.df.loc[:bottom_segment_start])
-                self.parts.append(
-                    self.df.loc[bottom_segment_start:bottom_segment_end])
-                self.parts.append(self.df.loc[bottom_segment_end:])
-                self.parts[0].type = "down"
-                self.parts[1].type = "bottom"
-                self.parts[2].type = "up"
-            elif minv < (grid[0] - margin):
-                self.parts.append(self.df.loc[:mini])
-                self.parts.append(self.df.loc[mini:])
-                self.parts[0].type = "down"
-                self.parts[1].type = "up"
-            else:
-                raise BaseException()
+                self.__calculate_down_segments(margin, down_grid)
+                if minv >= (grid[0] - margin) and minv <= (grid[0] + margin):
+                    bottom_segment = self.__get_segment(
+                        self.df, grid[0] - margin, grid[0] + margin)
+                    bottom_segment_start = bottom_segment.iloc[[0]].index[0]
+                    bottom_segment_end = bottom_segment.iloc[[-1]].index[0]
+                    self.parts.append(self.df.loc[bottom_segment_start:])
+                    self.parts[0].type = "up"
+                elif minv < (grid[0] - margin):
+                    self.parts.append(self.df.loc[mini:])
+                    self.parts[0].type = "up"
+                else:
+                    raise BaseException()
+                self.__calculate_up_segments(margin, grid)
         else:
             raise ValueError("sequence")
 
@@ -300,14 +384,17 @@ class MRSignal:
         for handler in self.__segments_calculated_handlers:
             handler()
 
-        self.__pick_mr_values(sequence)
+        self.__pick_mr_values(sequence, detector)
 
-    def __pick_mr_values(self, sequence):
+        if self.__interpolate:
+            self.__interpolate_mr(grid, down_grid)
+
+    def __pick_mr_values(self, sequence, detector):
         self.__clear_mr()
 
         for part in self.parts:
             for segment in self.segments[part.type]:
-                picked_value = segment.iloc[[-26]]
+                picked_value = segment.iloc[[detector]]
                 self.mr_values[part.type].append(picked_value)
             self.mr_values[part.type].sort(key=lambda item: item.index[0])
 
@@ -326,11 +413,29 @@ class MRSignal:
             self.__up_mr_lims = (up_mr_left_lim, up_mr_right_lim)
             self.__down_mr_lims = (down_mr_left_lim, down_mr_right_lim)
         elif sequence == Sequence.DOWN_UP:
-            raise NotImplementedError()
+            self.__mr.extend(self.mr_values["down"])
+            down_mr_left_lim = 0
+            down_mr_right_lim = len(self.mr_values["down"])
+            up_mr_left_lim = len(self.mr_values["down"])
+            up_mr_right_lim = len(
+                self.mr_values["down"]) + len(self.mr_values["up"])
+            if len(self.mr_values["bottom"]) > 0:
+                self.__mr.append(self.mr_values["bottom"][0])
+                down_mr_right_lim += 1
+                up_mr_right_lim += 1
+            self.__mr.extend(self.mr_values["up"])
+            self.__up_mr_lims = (up_mr_left_lim, up_mr_right_lim)
+            self.__down_mr_lims = (down_mr_left_lim, down_mr_right_lim)
         elif sequence == Sequence.UP:
-            raise NotImplementedError()
+            self.__mr.extend(self.mr_values["up"])
+            up_mr_left_lim = 0
+            up_mr_right_lim = len(self.mr_values["up"])
+            self.__up_mr_lims = (up_mr_left_lim, up_mr_right_lim)
         elif sequence == Sequence.DOWN:
-            raise NotImplementedError()
+            self.__mr.extend(self.mr_values["down"])
+            down_mr_left_lim = 0
+            down_mr_right_lim = len(self.mr_values["down"])
+            self.__down_mr_lims = (down_mr_left_lim, down_mr_right_lim)
         else:
             raise ValueError("sequence")
 
@@ -341,24 +446,46 @@ class MRSignal:
             handler()
 
     def set_mr_value(self, mr_value_ind, new_xdata_ind):
-        print("===> set_mr_value:")
-        print("mr_value_ind:", mr_value_ind)
-        print("new_xdata_ind:", new_xdata_ind)
         if len(self.__mr) == 0:
             raise BaseException()
 
         self.__mr[mr_value_ind] = self.df.loc[[new_xdata_ind]]
 
-        print("MR:", self.__mr)
-        for item in self.__mr:
-            print(type(item))
-
-        print(self.get_up_mr())
-        print(self.get_down_mr())
-        print(self.get_up_mr_inds())
-        print(self.get_down_mr_inds())
-
         for handler in self.__mr_calculated_handlers:
+            handler()
+
+        if self.__interpolate:
+            self.__interpolate_mr(self.__current_grid,
+                                  self.__current_down_grid)
+
+    def __interpolate_mr(self, grid, down_grid):
+        self.interpolated_mr.clear()
+
+        if (inds := self.get_up_mr_inds()) is not None:
+            up_mr = self.df.loc[inds].copy().sort_values(
+                str(self.cols.etalon_pq))
+            up_interpolator = CubicSpline(
+                up_mr[str(self.cols.etalon_pq)],
+                up_mr[str(self.cols.dut)])
+            interpolated_up_mr = up_interpolator(grid)
+            self.interpolated_mr["up"] = {
+                "x": grid,
+                "y": interpolated_up_mr
+            }
+
+        if (inds := self.get_down_mr_inds()) is not None:
+            down_mr = self.df.loc[inds].copy().sort_values(
+                str(self.cols.etalon_pq))
+            down_interpolator = CubicSpline(
+                down_mr[str(self.cols.etalon_pq)],
+                down_mr[str(self.cols.dut)])
+            interpolated_down_mr = down_interpolator(grid)
+            self.interpolated_mr["down"] = {
+                "x": down_grid,
+                "y": interpolated_down_mr
+            }
+
+        for handler in self.__mr_interpolated_handlers:
             handler()
 
     def get_up_mr(self):

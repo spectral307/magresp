@@ -160,9 +160,6 @@ class OscMainWindow(QMainWindow):
         self.__canvas.draw_idle()
 
     def __cursors_moved_handler(self, i, v):
-        print(i, v)
-        print(self.__snap_cursor_stack.get_cursor_xdata())
-        print(self.__snap_cursor_stack.get_cursor_xdata_inds())
         self.__ds_mr_signal.set_mr_value(i, v)
 
     def __parts_calculated_handler(self):

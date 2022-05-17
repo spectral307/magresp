@@ -25,7 +25,7 @@ class OnOpenFileDialog(QDialog):
         self.__settings = QSettings()
 
         ds_interval = self.__settings.value("ds_interval")
-        self.__ui.ds_line_edit.setText(ds_interval.replace(".", ","))
+        self.__ui.ds_line_edit.setText(ds_interval)
 
         self.__settings.beginGroup("etalon")
 

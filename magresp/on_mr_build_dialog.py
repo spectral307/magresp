@@ -1,10 +1,11 @@
-from PyQt6.QtWidgets import QDialog, QPushButton, QTableView, QMessageBox
+from PyQt6.QtWidgets import QDialog, QFileDialog, QPushButton, QTableView, QMessageBox
 from PyQt6.QtCore import QSettings
 from PyQt6.QtGui import QIcon
 from .ui_on_mr_build_dialog import Ui_OnMrBuildDialog
 from .sequence import Sequence
 from .grid_table_model import GridTableModel, GridItemDelegate
 import importlib.resources
+from os.path import dirname
 
 
 class OnMrBuildDialog(QDialog):
@@ -24,6 +25,23 @@ class OnMrBuildDialog(QDialog):
 
         self.__ui.margin_double_spin_box.setValue(
             self.__settings.value("grid/margin", type=float))
+
+        self.__ui.detector_spin_box.valueChanged.connect(
+            self.__on_detector_spin_box_value_changed)
+
+        self.__ui.detector_spin_box.setValue(
+            self.__settings.value("grid/detector", type=int))
+
+        self.__ui.interpolate_check_box.setChecked(
+            self.__settings.value("grid/interpolate", type=bool))
+
+        self.__ui.load_grid_push_button.pressed.connect(self.__load_grid)
+        self.__ui.load_down_grid_push_button.pressed.connect(
+            self.__load_down_grid)
+
+        self.__ui.save_grid_push_button.pressed.connect(self.__save_grid)
+        self.__ui.save_down_grid_push_button.pressed.connect(
+            self.__save_down_grid)
 
         with importlib.resources.path(f"{__package__}.images", "plus.png") as p:
             plus_path = p
@@ -134,6 +152,89 @@ class OnMrBuildDialog(QDialog):
     def __is_strictly_increasing(self, grid):
         return all(x < y for x, y in zip(grid, grid[1:]))
 
+    def __on_detector_spin_box_value_changed(self, value):
+        ds_interval = float(self.__settings.value(
+            "ds_interval").replace(",", "."))
+
+        if value >= 0:
+            detector_interval = round(value * ds_interval, 2)
+            detector_hint_label_text = f"({detector_interval} с от начала сегмента)"
+        else:
+            detector_interval = round(-(value * ds_interval), 2)
+            detector_hint_label_text = f"({detector_interval} с от конца сегмента)"
+
+        self.__ui.detector_hint_label.setText(
+            detector_hint_label_text)
+        self.__ui.detector_hint_label.adjustSize()
+
+    def __save_grid(self):
+        grid = self.__grid_table_model.getGrid()
+        file_path = self.__get_save_file_path()
+        if not file_path:
+            return
+        with open(file_path, "w") as file:
+            for item in grid:
+                file.write(str(item) + "\n")
+
+    def __save_down_grid(self):
+        down_grid = self.__down_grid_table_model.getGrid()
+        file_path = self.__get_save_file_path()
+        if not file_path:
+            return
+        with open(file_path, "w") as file:
+            for item in down_grid:
+                file.write(str(item) + "\n")
+
+    def __load_grid(self):
+        file_path = self.__get_load_file_path()
+        if not file_path:
+            return
+        with open(file_path, "r") as file:
+            grid = []
+            for line in file:
+                grid.append(line.strip())
+        self.__grid_table_model.clear()
+        for i, v in enumerate(grid):
+            self.__append_item_to_table_view(
+                self.__ui.grid_table_view, self.__grid_table_model)
+            self.__grid_table_model.setData(
+                self.__grid_table_model.createIndex(i, 0), float(v))
+
+    def __load_down_grid(self):
+        file_path = self.__get_load_file_path()
+        if not file_path:
+            return
+        with open(file_path, "r") as file:
+            down_grid = []
+            for line in file:
+                down_grid.append(line.strip())
+        self.__down_grid_table_model.clear()
+        for i, v in enumerate(down_grid):
+            self.__append_item_to_table_view(
+                self.__ui.down_grid_table_view, self.__down_grid_table_model)
+            self.__down_grid_table_model.setData(
+                self.__down_grid_table_model.createIndex(i, 0), float(v))
+
+    def __get_save_file_path(self):
+        default_dir = self.__settings.value("default_settings_dir")
+        file = QFileDialog.getSaveFileName(
+            self, "Сохранить файл", default_dir, "Файлы txt (*.txt)")
+        file_path = file[0]
+        dir_path = dirname(file_path)
+        if dir_path != default_dir:
+            self.__settings.setValue("default_settings_dir", dir_path)
+        return file_path
+
+    def __get_load_file_path(self):
+        default_dir = self.__settings.value("default_settings_dir")
+        file = QFileDialog.getOpenFileName(
+            self, "Открыть файл", default_dir, "Файлы txt (*.txt)")
+        file_path = file[0]
+        dir_path = dirname(file_path)
+        if dir_path != default_dir:
+            self.__settings.setValue("default_settings_dir", dir_path)
+        return file_path
+
     def accept(self):
         grid = self.__grid_table_model.getGrid()
         grid_on = self.__ui.grid_group_box.isChecked()
@@ -149,6 +250,10 @@ class OnMrBuildDialog(QDialog):
                 QMessageBox().critical(None, "Ошибка", "Ворота должны быть больше нуля")
                 return
             self.__settings.setValue("grid/margin", margin)
+            detector = self.__ui.detector_spin_box.value()
+            self.__settings.setValue("grid/detector", detector)
+            interpolate = self.__ui.interpolate_check_box.isChecked()
+            self.__settings.setValue("grid/interpolate", interpolate)
 
         down_grid = self.__down_grid_table_model.getGrid()
         down_grid_on = self.__ui.down_grid_group_box.isChecked()

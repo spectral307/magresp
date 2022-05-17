@@ -4,10 +4,23 @@ from PyQt6.QtCore import QSettings, QDir
 from .main_window import MainWindow
 from .sequence import Sequence
 import matplotlib.pyplot as plt
+import os.path
+
+
+def get_default_path():
+    path = QDir.cleanPath(QDir.home().absolutePath() +
+                          QDir.separator() + "Documents" +
+                          QDir.separator() + "gtlab")
+    if not os.path.exists(path):
+        path = QDir.home().absolutePath()
+    return path
 
 
 def load_settings(reset=False):
     settings = QSettings()
+
+    if reset:
+        settings.clear()
 
     if settings.value("colors") is None:
         default_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
@@ -36,20 +49,17 @@ def load_settings(reset=False):
         }
         settings.setValue("ru_mnemonics", ru_mnemonics)
 
-    if reset:
-        settings.clear()
+    if settings.value("default_gtr_dir") is None:
+        settings.setValue("default_gtr_dir", get_default_path())
 
-    if settings.value("default_dir") is None:
-        path = QDir.cleanPath(QDir.home().absolutePath() +
-                              QDir.separator() + "Documents" +
-                              QDir.separator() + "gtlab")
-        settings.setValue("default_dir", path)
+    if settings.value("default_settings_dir") is None:
+        settings.setValue("default_settings_dir", get_default_path())
 
     if settings.value("show_raw_signals") is None:
         settings.setValue("show_raw_signals", False)
 
     if settings.value("ds_interval") is None:
-        settings.setValue("ds_interval", 0.5)
+        settings.setValue("ds_interval", "0,5")
 
     if "etalon" not in settings.childGroups():
         settings.beginGroup("etalon")
@@ -80,13 +90,18 @@ def load_settings(reset=False):
         settings.setValue("grid/data", [0., 100.])
         settings.setValue("down_grid/data", [0., 100.])
         settings.setValue("grid/margin", 10.)
+        settings.setValue("grid/interpolate", True)
+        settings.setValue("grid/detector", -6)
 
 
-def remove_mr_settings():
+def clear_mr_settings():
     settings = QSettings()
-    # settings.clear()
-    settings.remove("sequence")
-    settings.remove("grid")
+    settings.clear()
+
+
+def remove_settings(key):
+    settings = QSettings()
+    settings.remove(key)
 
 
 def main():
@@ -96,7 +111,6 @@ def main():
     app.setOrganizationName("GTLab")
     app.setOrganizationDomain("gtlab.pro")
 
-    # remove_mr_settings()
     load_settings(reset=False)
 
     main = MainWindow()

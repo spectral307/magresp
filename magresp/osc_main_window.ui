@@ -38,6 +38,9 @@
    <property name="text">
     <string>Построить АХ...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
+   </property>
   </action>
   <action name="exit_action">
    <property name="text">

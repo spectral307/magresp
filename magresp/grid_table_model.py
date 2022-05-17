@@ -74,6 +74,9 @@ class GridTableModel(QAbstractTableModel):
         self.endRemoveRows()
         return True
 
+    def clear(self):
+        self.removeRows(0, self.rowCount())
+
     def headerData(self, section: int, orientation: Qt.Orientation, role: int):
         if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
             return self.__header_labels[section]

@@ -1,6 +1,6 @@
 from .ui_mr_main_window import Ui_MrMainWindow
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout
-from PyQt6.QtCore import Qt, QSettings, pyqtSignal
+from PyQt6.QtCore import Qt, QSettings
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvas, NavigationToolbar2QT
 from .sequence import Sequence
@@ -11,6 +11,7 @@ class MrMainWindow(QMainWindow):
         super().__init__(*args, **kwargs)
 
         self.__lines = []
+        self.__interpolation_lines = []
 
         self.__ds_mr_signal = ds_mr_signal
         self.__settings = QSettings()
@@ -37,16 +38,28 @@ class MrMainWindow(QMainWindow):
         toolbar.setAllowedAreas(Qt.ToolBarArea.AllToolBarAreas)
 
         sequence = Sequence(self.__settings.value("sequence", type=int))
+        interpolate = self.__settings.value("grid/interpolate", type=bool)
+        detector = self.__settings.value("grid/detector", type=int)
 
         if self.__settings.value("grid/on", type=bool):
             sequence = Sequence(self.__settings.value("sequence", type=int))
             margin = self.__settings.value("grid/margin", type=float)
             grid = [float(item)
                     for item in self.__settings.value("grid/data", type=list)]
-            self.__ds_mr_signal.add_mr_calculated_handler(
-                self.__mr_calculated_handler)
-            self.__ds_mr_signal.calculate_parts_and_segments_by_grid(
-                sequence, margin, grid)
+            if interpolate:
+                self.__ds_mr_signal.add_mr_interpolated_handler(
+                    self.__mr_interpolated_handler)
+            else:
+                self.__ds_mr_signal.add_mr_calculated_handler(
+                    self.__mr_calculated_handler)
+            if self.__settings.value("down_grid/on", type=bool):
+                down_grid = [float(item)
+                             for item in self.__settings.value("down_grid/data", type=list)]
+                self.__ds_mr_signal.calculate_parts_and_segments_by_grid(
+                    sequence, margin, detector, grid, down_grid, interpolate)
+            else:
+                self.__ds_mr_signal.calculate_parts_and_segments_by_grid(
+                    sequence, margin, detector, grid, down_grid=None, interpolate=interpolate)
         else:
             self.__ds_mr_signal.add_parts_calculated_handler(
                 self.__parts_calculated_handler)
@@ -72,6 +85,11 @@ class MrMainWindow(QMainWindow):
             self.__ax.lines.remove(line)
         self.__lines.clear()
 
+    def __clear_interpolation_lines(self):
+        for line in self.__interpolation_lines:
+            self.__ax.lines.remove(line)
+        self.__interpolation_lines.clear()
+
     def __mr_calculated_handler(self):
         self.__clear_lines()
 
@@ -94,7 +112,20 @@ class MrMainWindow(QMainWindow):
             self.__lines.append(line)
 
         self.__ax.legend()
+        self.__canvas.draw_idle()
 
+    def __mr_interpolated_handler(self):
+        self.__clear_interpolation_lines()
+
+        for part_type in self.__ds_mr_signal.interpolated_mr:
+            line, = self.__ax.plot(
+                self.__ds_mr_signal.interpolated_mr[part_type]["x"],
+                self.__ds_mr_signal.interpolated_mr[part_type]["y"],
+                label=self.__ru[part_type], color=self.__colors[part_type],
+                marker=".")
+            self.__interpolation_lines.append(line)
+
+        self.__ax.legend()
         self.__canvas.draw_idle()
 
     def closeEvent(self, a0):
@@ -102,4 +133,6 @@ class MrMainWindow(QMainWindow):
             self.__parts_calculated_handler)
         self.__ds_mr_signal.remove_mr_calculated_handler(
             self.__mr_calculated_handler)
+        self.__ds_mr_signal.remove_mr_interpolated_handler(
+            self.__mr_interpolated_handler)
         super().closeEvent(a0)
