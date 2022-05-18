@@ -1,6 +1,6 @@
 **/__pycache__/
 magresp.egg-info/
 build/
-/.qt_for_python
+**/.qt_for_python
 /.idea
 /.vscode

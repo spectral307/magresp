@@ -23,8 +23,32 @@
      <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Файл</string>
+    </property>
+    <addaction name="save_excel_action"/>
+    <addaction name="separator"/>
+    <addaction name="close_action"/>
+   </widget>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="action">
+   <property name="text">
+    <string>Сохранить txt...</string>
+   </property>
+  </action>
+  <action name="close_action">
+   <property name="text">
+    <string>Закрыть</string>
+   </property>
+  </action>
+  <action name="save_excel_action">
+   <property name="text">
+    <string>Сохранить excel...</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

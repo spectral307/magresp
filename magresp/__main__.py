@@ -45,15 +45,23 @@ def load_settings(reset=False):
             "top": "общий верх",
             "bottom": "общий низ",
             "raw": "исходный",
-            "ds": "усредненный"
+            "ds": "усредненный",
+            "horizontal": "горизонтальное",
+            "vertical": "вертикальное"
         }
         settings.setValue("ru_mnemonics", ru_mnemonics)
 
-    if settings.value("default_gtr_dir") is None:
-        settings.setValue("default_gtr_dir", get_default_path())
+    if settings.value("gtr_dir") is None:
+        settings.setValue("gtr_dir", get_default_path())
 
-    if settings.value("default_settings_dir") is None:
-        settings.setValue("default_settings_dir", get_default_path())
+    if settings.value("settings_dir") is None:
+        settings.setValue("settings_dir", get_default_path())
+
+    if settings.value("reports_dir") is None:
+        settings.setValue("reports_dir", get_default_path())
+
+    if settings.value("use_same_gtr_and_reports_dir") is None:
+        settings.setValue("use_same_gtr_and_reports_dir", True)
 
     if settings.value("show_raw_signals") is None:
         settings.setValue("show_raw_signals", False)
@@ -92,6 +100,11 @@ def load_settings(reset=False):
         settings.setValue("grid/margin", 10.)
         settings.setValue("grid/interpolate", True)
         settings.setValue("grid/detector", -6)
+
+    if "output/excel" not in settings.childGroups():
+        settings.setValue("output/excel/append", True)
+        settings.setValue("output/excel/direction", "hor")
+        settings.setValue("output/excel/start_cell", "A1")
 
 
 def clear_mr_settings():

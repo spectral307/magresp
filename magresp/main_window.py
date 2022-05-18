@@ -28,17 +28,20 @@ class MainWindow(QMainWindow):
     def open_file(self):
         settings = QSettings()
 
-        default_gtr_dir = settings.value("default_gtr_dir")
+        gtr_dir = settings.value("gtr_dir")
         file = QFileDialog.getOpenFileName(
-            self, "Открыть файл", default_gtr_dir, "Файлы gtr (*.gtr)")
+            self, "Открыть файл", gtr_dir, "Файлы gtr (*.gtr)")
         record_path = file[0]
         if not record_path:
             return
 
         record_dir = dirname(record_path)
         self.__filename = basename(record_path)
-        if record_dir != settings.value("default_gtr_dir"):
-            settings.setValue("default_gtr_dir", record_dir)
+        if record_dir != settings.value("gtr_dir"):
+            settings.setValue("gtr_dir", record_dir)
+        if settings.value("use_same_gtr_and_reports_dir", type=bool):
+            if record_dir != settings.value("reports_dir"):
+                settings.setValue("reports_dir", record_dir)
 
         res = OnOpenFileDialog().exec()
 

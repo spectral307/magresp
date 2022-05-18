@@ -216,23 +216,23 @@ class OnMrBuildDialog(QDialog):
                 self.__down_grid_table_model.createIndex(i, 0), float(v))
 
     def __get_save_file_path(self):
-        default_dir = self.__settings.value("default_settings_dir")
+        settings_dir = self.__settings.value("settings_dir")
         file = QFileDialog.getSaveFileName(
-            self, "Сохранить файл", default_dir, "Файлы txt (*.txt)")
+            self, "Сохранить файл", settings_dir, "Файлы txt (*.txt)")
         file_path = file[0]
         dir_path = dirname(file_path)
-        if dir_path != default_dir:
-            self.__settings.setValue("default_settings_dir", dir_path)
+        if dir_path != settings_dir:
+            self.__settings.setValue("settings_dir", dir_path)
         return file_path
 
     def __get_load_file_path(self):
-        default_dir = self.__settings.value("default_settings_dir")
+        settings_dir = self.__settings.value("settings_dir")
         file = QFileDialog.getOpenFileName(
-            self, "Открыть файл", default_dir, "Файлы txt (*.txt)")
+            self, "Открыть файл", settings_dir, "Файлы txt (*.txt)")
         file_path = file[0]
         dir_path = dirname(file_path)
-        if dir_path != default_dir:
-            self.__settings.setValue("default_settings_dir", dir_path)
+        if dir_path != settings_dir:
+            self.__settings.setValue("settings_dir", dir_path)
         return file_path
 
     def accept(self):

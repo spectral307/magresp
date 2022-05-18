@@ -1,9 +1,14 @@
 from .ui_mr_main_window import Ui_MrMainWindow
-from PyQt6.QtWidgets import QMainWindow, QVBoxLayout
+from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QFileDialog
 from PyQt6.QtCore import Qt, QSettings
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvas, NavigationToolbar2QT
 from .sequence import Sequence
+from os.path import dirname, splitext, exists
+from csv import writer
+from openpyxl import Workbook, load_workbook
+from openpyxl.utils.cell import get_column_letter
+from .on_save_excel_dialog import OnSaveExcelDialog
 
 
 class MrMainWindow(QMainWindow):
@@ -18,6 +23,9 @@ class MrMainWindow(QMainWindow):
 
         self.__ui = Ui_MrMainWindow()
         self.__ui.setupUi(self)
+
+        self.__ui.save_excel_action.triggered.connect(self.__save_excel)
+        self.__ui.close_action.triggered.connect(self.__close)
 
         self.__ru = self.__settings.value("ru_mnemonics", type=dict)
 
@@ -127,6 +135,47 @@ class MrMainWindow(QMainWindow):
 
         self.__ax.legend()
         self.__canvas.draw_idle()
+
+    def __save_excel(self):
+        file_path = self.__get_save_file_path()
+
+        if not file_path:
+            return
+
+        res = OnSaveExcelDialog().exec()
+
+        if res == 1:
+            if exists(file_path) and self.__settings.value("output/excel/append"):
+                wb = load_workbook(file_path)
+            else:
+                wb = Workbook()
+
+            interpolate = self.__settings.value("grid/interpolate", type=bool)
+            # if interpolate:
+            #     return
+
+            # if (inds := self.__ds_mr_signal.get_up_mr_inds()) is not None:
+            #     x1 = self.__ds_mr_signal.df.loc[inds]
+
+            # if (inds := self.__ds_mr_signal.get_down_mr_inds()) is not None:
+            #     x2 = self.__ds_mr_signal.df.loc[inds]
+
+    def __get_save_file_path(self):
+        reports_dir = self.__settings.value("reports_dir")
+        gtr_dir = self.__settings.value("gtr_dir")
+        file = QFileDialog.getSaveFileName(
+            self, "Сохранить txt-файл", reports_dir, "Файлы excel (*.xlsx)")
+        file_path = file[0]
+        dir_path = dirname(file_path)
+        if dir_path == gtr_dir:
+            self.__settings.setValue("use_same_gtr_and_reports_dir", True)
+        else:
+            self.__settings.setValue("use_same_gtr_and_reports_dir", False)
+            self.__settings.setValue("reports_dir", dir_path)
+        return file_path
+
+    def __close(self):
+        self.close()
 
     def closeEvent(self, a0):
         self.__ds_mr_signal.remove_parts_calculated_handler(
