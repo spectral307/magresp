@@ -101,10 +101,12 @@ def load_settings(reset=False):
         settings.setValue("grid/interpolate", True)
         settings.setValue("grid/detector", -6)
 
-    if "output/excel" not in settings.childGroups():
-        settings.setValue("output/excel/append", True)
-        settings.setValue("output/excel/direction", "hor")
-        settings.setValue("output/excel/start_cell", "A1")
+    settings.beginGroup("output")
+    if "excel" not in settings.childGroups():
+        settings.setValue("excel/append", True)
+        settings.setValue("excel/direction", "hor")
+        settings.setValue("excel/start_cell", "A1")
+    settings.endGroup()
 
 
 def clear_mr_settings():

@@ -5,7 +5,7 @@ from .ui_on_save_excel_dialog import Ui_OnSaveExcelDialog
 
 
 class OnSaveExcelDialog(QDialog):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, enable_append_check_box, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.__ui = Ui_OnSaveExcelDialog()
@@ -17,6 +17,11 @@ class OnSaveExcelDialog(QDialog):
 
         self.__ui.append_check_box.setChecked(
             self.__settings.value("output/excel/append", type=bool))
+
+        if enable_append_check_box:
+            self.__ui.append_check_box.setEnabled(True)
+        else:
+            self.__ui.append_check_box.setDisabled(True)
 
         self.__ui.direction_combo_box.addItem(
             self.__settings.value("ru_mnemonics")["vertical"])

@@ -1,5 +1,5 @@
 from .ui_mr_main_window import Ui_MrMainWindow
-from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QFileDialog
+from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QFileDialog, QMessageBox
 from PyQt6.QtCore import Qt, QSettings
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvas, NavigationToolbar2QT
@@ -142,23 +142,209 @@ class MrMainWindow(QMainWindow):
         if not file_path:
             return
 
-        res = OnSaveExcelDialog().exec()
+        enable_append_check_box = False
+        if exists(file_path):
+            enable_append_check_box = True
+
+        res = OnSaveExcelDialog(
+            enable_append_check_box=enable_append_check_box).exec()
 
         if res == 1:
-            if exists(file_path) and self.__settings.value("output/excel/append"):
+            if exists(file_path) and self.__settings.value("output/excel/append", type=bool):
                 wb = load_workbook(file_path)
             else:
                 wb = Workbook()
 
-            interpolate = self.__settings.value("grid/interpolate", type=bool)
-            # if interpolate:
-            #     return
+            ws = wb.active
+            start_cell = ws[self.__settings.value("output/excel/start_cell")]
+            start_row = start_cell.row
+            start_col_idx = start_cell.col_idx
+            cur_row = start_row
+            cur_col_idx = start_col_idx
 
-            # if (inds := self.__ds_mr_signal.get_up_mr_inds()) is not None:
-            #     x1 = self.__ds_mr_signal.df.loc[inds]
+            if self.__settings.value("grid/interpolate", type=bool):
+                if "up" in self.__ds_mr_signal.interpolated_mr:
+                    if self.__settings.value("output/excel/direction") == "horizontal":
+                        ws.cell(cur_row, cur_col_idx, self.__ru["up"])
+                        cur_row += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.etalon_pq))
+                        cur_row += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.dut))
+                        cur_row -= 1
+                        cur_col_idx += 1
+                        for i, val in enumerate(self.__ds_mr_signal.interpolated_mr["up"]["x"]):
+                            ws.cell(cur_row, cur_col_idx, val)
+                            cur_row += 1
+                            ws.cell(cur_row, cur_col_idx,
+                                    self.__ds_mr_signal.interpolated_mr["up"]["y"][i])
+                            cur_col_idx += 1
+                            cur_row -= 1
+                        cur_row = start_row + 3
+                        cur_col_idx = start_col_idx
+                    elif self.__settings.value("output/excel/direction") == "vertical":
+                        ws.cell(cur_row, cur_col_idx, self.__ru["up"])
+                        cur_row += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.etalon_pq))
+                        cur_col_idx += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.dut))
+                        cur_col_idx -= 1
+                        cur_row += 1
+                        for i, val in enumerate(self.__ds_mr_signal.interpolated_mr["up"]["x"]):
+                            ws.cell(cur_row, cur_col_idx, val)
+                            cur_col_idx += 1
+                            ws.cell(cur_row, cur_col_idx,
+                                    self.__ds_mr_signal.interpolated_mr["up"]["y"][i])
+                            cur_row += 1
+                            cur_col_idx -= 1
+                        cur_row = start_row
+                        cur_col_idx = start_col_idx + 2
 
-            # if (inds := self.__ds_mr_signal.get_down_mr_inds()) is not None:
-            #     x2 = self.__ds_mr_signal.df.loc[inds]
+                if "down" in self.__ds_mr_signal.interpolated_mr:
+                    write_x = True
+                    if (("up" in self.__ds_mr_signal.interpolated_mr) and
+                            self.__ds_mr_signal.interpolated_mr["up"]["x"] != self.__ds_mr_signal.interpolated_mr["down"]["x"]):
+                        write_x = False
+                    if self.__settings.value("output/excel/direction") == "horizontal":
+                        ws.cell(cur_row, cur_col_idx, self.__ru["down"])
+                        cur_row += 1
+                        if write_x:
+                            ws.cell(cur_row, cur_col_idx, str(
+                                self.__ds_mr_signal.cols.etalon_pq))
+                            cur_row += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.dut))
+                        if write_x:
+                            cur_row -= 1
+                        cur_col_idx += 1
+                        for i, val in enumerate(self.__ds_mr_signal.interpolated_mr["down"]["x"]):
+                            if write_x:
+                                ws.cell(cur_row, cur_col_idx, val)
+                                cur_row += 1
+                            ws.cell(cur_row, cur_col_idx,
+                                    self.__ds_mr_signal.interpolated_mr["down"]["y"][i])
+                            cur_col_idx += 1
+                            if write_x:
+                                cur_row -= 1
+                        cur_row = start_row + 3
+                        cur_col_idx = start_col_idx
+                    elif self.__settings.value("output/excel/direction") == "vertical":
+                        ws.cell(cur_row, cur_col_idx, self.__ru["down"])
+                        cur_row += 1
+                        if write_x:
+                            ws.cell(cur_row, cur_col_idx, str(
+                                self.__ds_mr_signal.cols.etalon_pq))
+                            cur_col_idx += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.dut))
+                        if write_x:
+                            cur_col_idx -= 1
+                        cur_row += 1
+                        for i, val in enumerate(self.__ds_mr_signal.interpolated_mr["down"]["x"]):
+                            if write_x:
+                                ws.cell(cur_row, cur_col_idx, val)
+                                cur_col_idx += 1
+                            ws.cell(cur_row, cur_col_idx,
+                                    self.__ds_mr_signal.interpolated_mr["down"]["y"][i])
+                            cur_row += 1
+                            if write_x:
+                                cur_col_idx -= 1
+                        cur_row = start_row
+                        cur_col_idx = start_col_idx + 2
+            else:
+                if (inds := self.__ds_mr_signal.get_up_mr_inds()) is not None:
+                    if self.__settings.value("output/excel/direction") == "horizontal":
+                        ws.cell(cur_row, cur_col_idx, self.__ru["up"])
+                        cur_row += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.etalon_pq))
+                        cur_row += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.dut))
+                        cur_row -= 1
+                        cur_col_idx += 1
+                        for i, row in self.__ds_mr_signal.df.loc[inds].sort_values(
+                                by=str(self.__ds_mr_signal.cols.etalon_pq)).iterrows():
+                            ws.cell(cur_row, cur_col_idx, row[str(
+                                self.__ds_mr_signal.cols.etalon_pq)])
+                            cur_row += 1
+                            ws.cell(cur_row, cur_col_idx,
+                                    row[str(self.__ds_mr_signal.cols.dut)])
+                            cur_col_idx += 1
+                            cur_row -= 1
+                        cur_row = start_row + 3
+                        cur_col_idx = start_col_idx
+                    elif self.__settings.value("output/excel/direction") == "vertical":
+                        ws.cell(cur_row, cur_col_idx, self.__ru["up"])
+                        cur_row += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.etalon_pq))
+                        cur_col_idx += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.dut))
+                        cur_col_idx -= 1
+                        cur_row += 1
+                        for i, row in self.__ds_mr_signal.df.loc[inds].sort_values(
+                                by=str(self.__ds_mr_signal.cols.etalon_pq)).iterrows():
+                            ws.cell(cur_row, cur_col_idx, row[str(
+                                self.__ds_mr_signal.cols.etalon_pq)])
+                            cur_col_idx += 1
+                            ws.cell(cur_row, cur_col_idx,
+                                    row[str(self.__ds_mr_signal.cols.dut)])
+                            cur_row += 1
+                            cur_col_idx -= 1
+                        cur_row = start_row
+                        cur_col_idx = start_col_idx + 2
+
+                if (inds := self.__ds_mr_signal.get_down_mr_inds()) is not None:
+                    if self.__settings.value("output/excel/direction") == "horizontal":
+                        ws.cell(cur_row, cur_col_idx, self.__ru["down"])
+                        cur_row += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.etalon_pq))
+                        cur_row += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.dut))
+                        cur_row -= 1
+                        cur_col_idx += 1
+                        for i, row in self.__ds_mr_signal.df.loc[inds].sort_values(
+                                by=str(self.__ds_mr_signal.cols.etalon_pq)).iterrows():
+                            ws.cell(cur_row, cur_col_idx, row[str(
+                                self.__ds_mr_signal.cols.etalon_pq)])
+                            cur_row += 1
+                            ws.cell(cur_row, cur_col_idx,
+                                    row[str(self.__ds_mr_signal.cols.dut)])
+                            cur_col_idx += 1
+                            cur_row -= 1
+                    elif self.__settings.value("output/excel/direction") == "vertical":
+                        ws.cell(cur_row, cur_col_idx, self.__ru["down"])
+                        cur_row += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.etalon_pq))
+                        cur_col_idx += 1
+                        ws.cell(cur_row, cur_col_idx, str(
+                            self.__ds_mr_signal.cols.dut))
+                        cur_col_idx -= 1
+                        cur_row += 1
+                        for i, row in self.__ds_mr_signal.df.loc[inds].sort_values(
+                                by=str(self.__ds_mr_signal.cols.etalon_pq)).iterrows():
+                            ws.cell(cur_row, cur_col_idx, row[str(
+                                self.__ds_mr_signal.cols.etalon_pq)])
+                            cur_col_idx += 1
+                            ws.cell(cur_row, cur_col_idx,
+                                    row[str(self.__ds_mr_signal.cols.dut)])
+                            cur_row += 1
+                            cur_col_idx -= 1
+
+            try:
+                wb.save(file_path)
+            except PermissionError:
+                QMessageBox.critical(
+                    None, "Ошибка",
+                    "Выбранный файл открыт в другой программе. Закройте его и повторите попытку")
 
     def __get_save_file_path(self):
         reports_dir = self.__settings.value("reports_dir")

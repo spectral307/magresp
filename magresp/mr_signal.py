@@ -289,14 +289,14 @@ class MRSignal:
                     self.parts[2].type = "down"
                     self.segments["top"].append(top_segment)
                     self.__calculate_up_segments(margin, grid[:-1])
-                    self.__calculate_down_segments(margin, grid[:-1])
+                    self.__calculate_down_segments(margin, down_grid[:-1])
                 elif maxv > (grid[-1] + margin):
                     self.parts.append(self.df.loc[:maxi])
                     self.parts.append(self.df.loc[maxi:])
                     self.parts[0].type = "up"
                     self.parts[1].type = "down"
                     self.__calculate_up_segments(margin, grid)
-                    self.__calculate_down_segments(margin, grid)
+                    self.__calculate_down_segments(margin, down_grid)
                 else:
                     raise BaseException()
             else:
@@ -341,11 +341,16 @@ class MRSignal:
                     self.parts[0].type = "down"
                     self.parts[1].type = "bottom"
                     self.parts[2].type = "up"
+                    self.segments["bottom"].append(bottom_segment)
+                    self.__calculate_up_segments(margin, grid[0:])
+                    self.__calculate_down_segments(margin, down_grid[0:])
                 elif minv < (grid[0] - margin):
                     self.parts.append(self.df.loc[:mini])
                     self.parts.append(self.df.loc[mini:])
                     self.parts[0].type = "down"
                     self.parts[1].type = "up"
+                    self.__calculate_up_segments(margin, grid)
+                    self.__calculate_down_segments(margin, down_grid)
                 else:
                     raise BaseException()
             else:
@@ -479,7 +484,7 @@ class MRSignal:
             down_interpolator = CubicSpline(
                 down_mr[str(self.cols.etalon_pq)],
                 down_mr[str(self.cols.dut)])
-            interpolated_down_mr = down_interpolator(grid)
+            interpolated_down_mr = down_interpolator(down_grid)
             self.interpolated_mr["down"] = {
                 "x": down_grid,
                 "y": interpolated_down_mr
