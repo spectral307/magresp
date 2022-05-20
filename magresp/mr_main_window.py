@@ -1,13 +1,12 @@
+from magresp.errors.empty_segment_error import EmptySegmentError, ShortSegmentError
 from .ui_mr_main_window import Ui_MrMainWindow
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QFileDialog, QMessageBox
 from PyQt6.QtCore import Qt, QSettings
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvas, NavigationToolbar2QT
 from .sequence import Sequence
-from os.path import dirname, splitext, exists
-from csv import writer
+from os.path import dirname, exists
 from openpyxl import Workbook, load_workbook
-from openpyxl.utils.cell import get_column_letter
 from .on_save_excel_dialog import OnSaveExcelDialog
 
 
@@ -23,6 +22,8 @@ class MrMainWindow(QMainWindow):
 
         self.__ui = Ui_MrMainWindow()
         self.__ui.setupUi(self)
+
+        self.mr_calculated = True
 
         self.__ui.save_excel_action.triggered.connect(self.__save_excel)
         self.__ui.close_action.triggered.connect(self.__close)
@@ -63,11 +64,65 @@ class MrMainWindow(QMainWindow):
             if self.__settings.value("down_grid/on", type=bool):
                 down_grid = [float(item)
                              for item in self.__settings.value("down_grid/data", type=list)]
-                self.__ds_mr_signal.calculate_parts_and_segments_by_grid(
-                    sequence, margin, detector, grid, down_grid, interpolate)
+                try:
+                    self.__ds_mr_signal.calculate_parts_and_segments_by_grid(
+                        sequence, margin, detector, grid, down_grid, interpolate)
+                except EmptySegmentError as err:
+                    if err.type == "up":
+                        x = "подъема"
+                    elif err.type == "down":
+                        x = "спуска"
+                    QMessageBox.critical(
+                        None, "Ошибка", (f"Сегмент {x} {str(err.grid_value)} {self.__ds_mr_signal.cols.etalon_pq.unit}"
+                                         " слишком короткий. Проверьте сетку и повторите попытку"))
+                    self.__ds_mr_signal.remove_mr_interpolated_handler(
+                        self.__mr_interpolated_handler)
+                    self.__ds_mr_signal.remove_mr_calculated_handler(
+                        self.__mr_calculated_handler)
+                    self.mr_calculated = False
+                except ShortSegmentError as err:
+                    if err.type == "up":
+                        x = "подъема"
+                    elif err.type == "down":
+                        x = "спуска"
+                    QMessageBox.critical(
+                        None, "Ошибка", (f"Сегмент {x} {str(err.grid_value)} {self.__ds_mr_signal.cols.etalon_pq.unit}"
+                                         " слишком короткий для текущего детектора. Проверьте детектор и повторите попытку"))
+                    self.__ds_mr_signal.remove_mr_interpolated_handler(
+                        self.__mr_interpolated_handler)
+                    self.__ds_mr_signal.remove_mr_calculated_handler(
+                        self.__mr_calculated_handler)
+                    self.mr_calculated = False
             else:
-                self.__ds_mr_signal.calculate_parts_and_segments_by_grid(
-                    sequence, margin, detector, grid, down_grid=None, interpolate=interpolate)
+                try:
+                    self.__ds_mr_signal.calculate_parts_and_segments_by_grid(
+                        sequence, margin, detector, grid, down_grid=None, interpolate=interpolate)
+                except EmptySegmentError as err:
+                    if err.type == "up":
+                        x = "подъема"
+                    elif err.type == "down":
+                        x = "спуска"
+                    QMessageBox.critical(
+                        None, "Ошибка", (f"Сегмент {x} {str(err.grid_value)} {self.__ds_mr_signal.cols.etalon_pq.unit}"
+                                         " слишком короткий. Проверьте сетку и повторите попытку"))
+                    self.__ds_mr_signal.remove_mr_interpolated_handler(
+                        self.__mr_interpolated_handler)
+                    self.__ds_mr_signal.remove_mr_calculated_handler(
+                        self.__mr_calculated_handler)
+                    self.mr_calculated = False
+                except ShortSegmentError as err:
+                    if err.type == "up":
+                        x = "подъема"
+                    elif err.type == "down":
+                        x = "спуска"
+                    QMessageBox.critical(
+                        None, "Ошибка", (f"Сегмент {x} {str(err.grid_value)} {self.__ds_mr_signal.cols.etalon_pq.unit}"
+                                         " слишком короткий для текущего детектора. Проверьте детектор и повторите попытку"))
+                    self.__ds_mr_signal.remove_mr_interpolated_handler(
+                        self.__mr_interpolated_handler)
+                    self.__ds_mr_signal.remove_mr_calculated_handler(
+                        self.__mr_calculated_handler)
+                    self.mr_calculated = False
         else:
             self.__ds_mr_signal.add_parts_calculated_handler(
                 self.__parts_calculated_handler)
@@ -206,7 +261,7 @@ class MrMainWindow(QMainWindow):
                 if "down" in self.__ds_mr_signal.interpolated_mr:
                     write_x = True
                     if (("up" in self.__ds_mr_signal.interpolated_mr) and
-                            self.__ds_mr_signal.interpolated_mr["up"]["x"] != self.__ds_mr_signal.interpolated_mr["down"]["x"]):
+                            self.__ds_mr_signal.interpolated_mr["up"]["x"] == self.__ds_mr_signal.interpolated_mr["down"]["x"]):
                         write_x = False
                     if self.__settings.value("output/excel/direction") == "horizontal":
                         ws.cell(cur_row, cur_col_idx, self.__ru["down"])

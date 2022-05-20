@@ -1,4 +1,4 @@
-from lib2to3.pytree import Base
+from .errors.empty_segment_error import EmptySegmentError, ShortSegmentError
 import pandas as pd
 from typing import NamedTuple
 from .sequence import Sequence
@@ -398,8 +398,11 @@ class MRSignal:
         self.__clear_mr()
 
         for part in self.parts:
-            for segment in self.segments[part.type]:
-                picked_value = segment.iloc[[detector]]
+            for i, segment in enumerate(self.segments[part.type]):
+                try:
+                    picked_value = segment.iloc[[detector]]
+                except IndexError:
+                    raise ShortSegmentError(part.type, segment.grid_value)
                 self.mr_values[part.type].append(picked_value)
             self.mr_values[part.type].sort(key=lambda item: item.index[0])
 
@@ -537,8 +540,13 @@ class MRSignal:
         if up_part is None:
             raise BaseException("Up part not found")
         for value in grid:
-            self.segments["up"].append(self.__get_segment(
-                up_part, value - margin, value + margin))
+            try:
+                segment = self.__get_segment(
+                    up_part, value - margin, value + margin)
+                segment.grid_value = value
+            except IndexError:
+                raise EmptySegmentError("up", value)
+            self.segments["up"].append(segment)
 
     def __calculate_down_segments(self, margin, grid):
         down_part = None
@@ -548,8 +556,13 @@ class MRSignal:
         if down_part is None:
             raise BaseException("Down part not found")
         for value in grid:
-            self.segments["down"].append(self.__get_segment(
-                down_part, value - margin, value + margin))
+            try:
+                segment = self.__get_segment(
+                    down_part, value - margin, value + margin)
+                segment.grid_value = value
+            except IndexError:
+                raise EmptySegmentError("down", value)
+            self.segments["down"].append(segment)
 
     def __clear_parts(self):
         self.parts.clear()
