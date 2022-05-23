@@ -1,11 +1,13 @@
-from PyQt6.QtWidgets import QDialog, QFileDialog, QPushButton, QTableView, QMessageBox
-from PyQt6.QtCore import QSettings
+from PyQt6.QtWidgets import QDialog, QFileDialog, QPushButton, QMessageBox
+from PyQt6.QtCore import QSettings, QRect
 from PyQt6.QtGui import QIcon
 from .ui_on_mr_build_dialog import Ui_OnMrBuildDialog
 from .sequence import Sequence
 from .grid_table_model import GridTableModel, GridItemDelegate
 import importlib.resources
 from os.path import dirname
+from .grid_table_view import GridTableView
+from . import images
 
 
 class OnMrBuildDialog(QDialog):
@@ -14,6 +16,15 @@ class OnMrBuildDialog(QDialog):
 
         self.__ui = Ui_OnMrBuildDialog()
         self.__ui.setupUi(self)
+
+        self.__ui.down_grid_table_view = GridTableView(
+            self.__ui.down_grid_group_box)
+        self.__ui.down_grid_table_view.setGeometry(QRect(10, 60, 231, 441))
+        self.__ui.down_grid_table_view.setObjectName("down_grid_table_view")
+
+        self.__ui.grid_table_view = GridTableView(self.__ui.grid_group_box)
+        self.__ui.grid_table_view.setGeometry(QRect(10, 80, 231, 441))
+        self.__ui.grid_table_view.setObjectName("grid_table_view")
 
         self.setFixedSize(self.size())
 
@@ -43,12 +54,15 @@ class OnMrBuildDialog(QDialog):
         self.__ui.save_down_grid_push_button.pressed.connect(
             self.__save_down_grid)
 
-        with importlib.resources.path(f"{__package__}.images", "plus.png") as p:
+        with importlib.resources.path(images, "plus.png") as p:
             plus_path = p
-        with importlib.resources.path(f"{__package__}.images", "minus.png") as p:
+        with importlib.resources.path(images, "minus.png") as p:
             minus_path = p
-        self.__plus_icon = QIcon(str(plus_path))
-        self.__minus_icon = QIcon(str(minus_path))
+        # self.__plus_icon = QIcon(str(plus_path))
+        # self.__minus_icon = QIcon(str(minus_path))
+        # для pyinstaller
+        self.__plus_icon = QIcon("./plus.png")
+        self.__minus_icon = QIcon("./minus.png")
 
         grid = self.__settings.value("grid/data")
         down_grid = self.__settings.value("down_grid/data")
@@ -91,7 +105,7 @@ class OnMrBuildDialog(QDialog):
         self.__ui.down_grid_group_box.toggled.connect(
             self.__on_down_grid_group_box_toggled)
 
-    def __init_table_view(self, table_view: QTableView, table_model: GridTableModel):
+    def __init_table_view(self, table_view: GridTableView, table_model: GridTableModel):
         table_view.setModel(table_model)
         table_view.setItemDelegate(
             GridItemDelegate(table_view))
@@ -103,7 +117,7 @@ class OnMrBuildDialog(QDialog):
         for i in range(table_model.rowCount()):
             self.__add_buttons_to_table_view_item(i, table_view, table_model)
 
-    def __add_buttons_to_table_view_item(self, index, table_view: QTableView, table_model: GridTableModel):
+    def __add_buttons_to_table_view_item(self, index, table_view: GridTableView, table_model: GridTableModel):
         plus_button_index = table_model.createIndex(index, 1)
         minus_button_index = table_model.createIndex(index, 2)
 
@@ -121,7 +135,7 @@ class OnMrBuildDialog(QDialog):
         minus_button.clicked.connect(
             lambda: self.__remove_item_from_table_view(row, table_model))
 
-    def __insert_item_into_table_view(self, row, table_view: QTableView, table_model: GridTableModel):
+    def __insert_item_into_table_view(self, row, table_view: GridTableView, table_model: GridTableModel):
         index = table_model.getRowIndex(row)
         table_model.insertRow(index)
         self.__add_buttons_to_table_view_item(index, table_view, table_model)
@@ -130,7 +144,7 @@ class OnMrBuildDialog(QDialog):
         index = table_model.getRowIndex(row)
         table_model.removeRow(index)
 
-    def __append_item_to_table_view(self, table_view: QTableView, table_model: GridTableModel):
+    def __append_item_to_table_view(self, table_view: GridTableView, table_model: GridTableModel):
         row_count = table_model.rowCount()
         table_model.insertRow(row_count)
         self.__add_buttons_to_table_view_item(

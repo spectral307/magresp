@@ -1,5 +1,4 @@
-from configparser import SafeConfigParser
-from PyQt6.QtWidgets import QMainWindow, QVBoxLayout
+from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QMessageBox
 from PyQt6.QtCore import Qt, QSettings, pyqtSignal
 from .ui_osc_main_window import Ui_OscMainWindow
 from matplotlib.figure import Figure
@@ -82,6 +81,8 @@ class OscMainWindow(QMainWindow):
         self.__ax2.set_ylabel(str(ds_mr_signal.cols.dut))
         self.__ax2.autoscale(enable=True, axis="x", tight=True)
 
+        self.cursors_set = True
+
     def __exit(self):
         self.close()
 
@@ -154,10 +155,28 @@ class OscMainWindow(QMainWindow):
 
         for part_type in self.__ds_mr_signal.mr_values:
             for mr_value in self.__ds_mr_signal.mr_values[part_type]:
-                self.__snap_cursor_stack.add_cursor(
-                    mr_value.index[0], color=self.__colors[part_type])
+                try:
+                    self.__snap_cursor_stack.add_cursor(
+                        mr_value.index[0], color=self.__colors[part_type])
+                except ValueError as err:
+                    if (str(err) == "There is already cursor with same xdata_ind"):
+                        if part_type == "up":
+                            x = "подъема"
+                        elif part_type == "down":
+                            x = "спуска"
+                        QMessageBox().critical(None, "Ошибка",
+                                               (f"Значение сетки {mr_value.grid_value}"
+                                                f" {self.__ds_mr_signal.cols.etalon_pq.unit} находится слишком"
+                                                " близко к предыдущему значению. Разнесите значения сетки."))
+                        if self.__snap_cursor_stack is not None:
+                            self.__snap_cursor_stack.clear()
+                            self.__canvas.draw_idle()
+                            self.__snap_cursor_stack = None
+                        self.cursors_set = False
+                        return
 
         self.__canvas.draw_idle()
+        self.cursors_set = True
 
     def __cursors_moved_handler(self, i, v):
         self.__ds_mr_signal.set_mr_value(i, v)

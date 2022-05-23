@@ -298,7 +298,7 @@ class MRSignal:
                     self.__calculate_up_segments(margin, grid)
                     self.__calculate_down_segments(margin, down_grid)
                 else:
-                    raise BaseException()
+                    raise EmptySegmentError("up", grid[-1])
             else:
                 if maxv >= (grid[-1] - margin) and maxv <= (grid[-1] + margin):
                     top_segment = self.__get_segment(
@@ -311,7 +311,7 @@ class MRSignal:
                     self.parts.append(self.df.loc[:maxi])
                     self.parts[0].type = "up"
                 else:
-                    raise BaseException()
+                    raise EmptySegmentError("up", grid[-1])
                 self.__calculate_up_segments(margin, grid)
                 if maxv >= (down_grid[-1] - margin) and maxv <= (down_grid[-1] + margin):
                     top_segment = self.__get_segment(
@@ -324,7 +324,7 @@ class MRSignal:
                     self.parts.append(self.df.loc[maxi:])
                     self.parts[1].type = "down"
                 else:
-                    raise BaseException()
+                    raise EmptySegmentError("down", down_grid[-1])
                 self.__calculate_down_segments(margin, down_grid)
         elif sequence == Sequence.DOWN_UP:
             mini, minv = self.__get_min()
@@ -352,7 +352,7 @@ class MRSignal:
                     self.__calculate_up_segments(margin, grid)
                     self.__calculate_down_segments(margin, down_grid)
                 else:
-                    raise BaseException()
+                    raise EmptySegmentError("down", grid[0])
             else:
                 if minv >= (down_grid[0] - margin) and minv <= (down_grid[0] + margin):
                     bottom_segment = self.__get_segment(
@@ -365,7 +365,7 @@ class MRSignal:
                     self.parts.append(self.df.loc[:mini])
                     self.parts[0].type = "down"
                 else:
-                    raise BaseException()
+                    raise EmptySegmentError("down", down_grid[0])
                 self.__calculate_down_segments(margin, down_grid)
                 if minv >= (grid[0] - margin) and minv <= (grid[0] + margin):
                     bottom_segment = self.__get_segment(
@@ -378,7 +378,7 @@ class MRSignal:
                     self.parts.append(self.df.loc[mini:])
                     self.parts[0].type = "up"
                 else:
-                    raise BaseException()
+                    raise EmptySegmentError("up", grid[0])
                 self.__calculate_up_segments(margin, grid)
         else:
             raise ValueError("sequence")
@@ -401,6 +401,7 @@ class MRSignal:
             for i, segment in enumerate(self.segments[part.type]):
                 try:
                     picked_value = segment.iloc[[detector]]
+                    picked_value.grid_value = segment.grid_value
                 except IndexError:
                     raise ShortSegmentError(part.type, segment.grid_value)
                 self.mr_values[part.type].append(picked_value)
