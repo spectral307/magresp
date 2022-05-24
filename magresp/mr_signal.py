@@ -287,6 +287,7 @@ class MRSignal:
                     self.parts[0].type = "up"
                     self.parts[1].type = "top"
                     self.parts[2].type = "down"
+                    top_segment.grid_value = grid[-1]
                     self.segments["top"].append(top_segment)
                     self.__calculate_up_segments(margin, grid[:-1])
                     self.__calculate_down_segments(margin, down_grid[:-1])
@@ -341,9 +342,10 @@ class MRSignal:
                     self.parts[0].type = "down"
                     self.parts[1].type = "bottom"
                     self.parts[2].type = "up"
+                    bottom_segment.grid_value = grid[0]
                     self.segments["bottom"].append(bottom_segment)
-                    self.__calculate_up_segments(margin, grid[0:])
-                    self.__calculate_down_segments(margin, down_grid[0:])
+                    self.__calculate_up_segments(margin, grid[1:])
+                    self.__calculate_down_segments(margin, down_grid[1:])
                 elif minv < (grid[0] - margin):
                     self.parts.append(self.df.loc[:mini])
                     self.parts.append(self.df.loc[mini:])
@@ -473,9 +475,13 @@ class MRSignal:
         if (inds := self.get_up_mr_inds()) is not None:
             up_mr = self.df.loc[inds].copy().sort_values(
                 str(self.cols.etalon_pq))
-            up_interpolator = CubicSpline(
-                up_mr[str(self.cols.etalon_pq)],
-                up_mr[str(self.cols.dut)])
+            try:
+                up_interpolator = CubicSpline(
+                    up_mr[str(self.cols.etalon_pq)],
+                    up_mr[str(self.cols.dut)])
+            except ValueError as err:
+                if str(err) == "`x` must be strictly increasing sequence.":
+                    return
             interpolated_up_mr = up_interpolator(grid)
             self.interpolated_mr["up"] = {
                 "x": grid,
@@ -485,9 +491,14 @@ class MRSignal:
         if (inds := self.get_down_mr_inds()) is not None:
             down_mr = self.df.loc[inds].copy().sort_values(
                 str(self.cols.etalon_pq))
-            down_interpolator = CubicSpline(
-                down_mr[str(self.cols.etalon_pq)],
-                down_mr[str(self.cols.dut)])
+            try:
+                down_interpolator = CubicSpline(
+                    down_mr[str(self.cols.etalon_pq)],
+                    down_mr[str(self.cols.dut)])
+            except ValueError as err:
+                if str(err) == "`x` must be strictly increasing sequence.":
+                    self.interpolated_mr.clear()
+                    return
             interpolated_down_mr = down_interpolator(down_grid)
             self.interpolated_mr["down"] = {
                 "x": down_grid,

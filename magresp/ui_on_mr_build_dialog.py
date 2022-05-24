@@ -64,6 +64,7 @@ class Ui_OnMrBuildDialog(object):
         self.margin_name_label.setObjectName("margin_name_label")
         self.margin_double_spin_box = QtWidgets.QDoubleSpinBox(self.grid_group_box)
         self.margin_double_spin_box.setGeometry(QtCore.QRect(70, 580, 111, 22))
+        self.margin_double_spin_box.setMaximum(1000000.0)
         self.margin_double_spin_box.setObjectName("margin_double_spin_box")
         self.margin_unit_label = QtWidgets.QLabel(self.grid_group_box)
         self.margin_unit_label.setGeometry(QtCore.QRect(190, 580, 49, 16))
