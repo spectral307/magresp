@@ -58,11 +58,11 @@ class OnMrBuildDialog(QDialog):
             plus_path = p
         with importlib.resources.path(images, "minus.png") as p:
             minus_path = p
-        self.__plus_icon = QIcon(str(plus_path))
-        self.__minus_icon = QIcon(str(minus_path))
+        # self.__plus_icon = QIcon(str(plus_path))
+        # self.__minus_icon = QIcon(str(minus_path))
         # для pyinstaller
-        # self.__plus_icon = QIcon("./plus.png")
-        # self.__minus_icon = QIcon("./minus.png")
+        self.__plus_icon = QIcon("./plus.png")
+        self.__minus_icon = QIcon("./minus.png")
 
         grid = self.__settings.value("grid/data")
         down_grid = self.__settings.value("down_grid/data")
