@@ -3,10 +3,10 @@ from setuptools import setup
 with open("requirements.txt") as f:
     requirements = f.read().splitlines()
 
-# requirements.append(
-#     "gtrfile @ git+https://github.com/spectral307/gtrfile.git#egg=gtrfile-1.0.0")
-# requirements.append(
-#     "snap_cursor_stack @ https://github.com/spectral307/snap_cursor_stack.git#egg=gtrfile-1.0.0")
+requirements.append(
+    "gtrfile @ git+https://github.com/spectral307/gtrfile.git#egg=gtrfile-1.0.0")
+requirements.append(
+    "snap_cursor_stack @ https://github.com/spectral307/snap_cursor_stack.git#egg=gtrfile-1.0.0")
 
 setup(name="magresp",
       version="0.0.0",
