@@ -1,4 +1,4 @@
-from .errors.empty_segment_error import EmptySegmentError, ShortSegmentError
+from .errors import EmptySegmentError, ShortSegmentError
 import pandas as pd
 from typing import NamedTuple
 from .sequence import Sequence

@@ -1,4 +1,4 @@
-from magresp.errors.empty_segment_error import EmptySegmentError, ShortSegmentError
+from .errors import EmptySegmentError, ShortSegmentError
 from .ui_mr_main_window import Ui_MrMainWindow
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QFileDialog, QMessageBox
 from PyQt6.QtCore import Qt, QSettings
