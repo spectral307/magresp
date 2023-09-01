@@ -172,19 +172,19 @@ class OnMrBuildDialog(QDialog):
             self.__settings.setValue("grid/detector_type", "static")
             detector_value = self.__settings.value(
                 "grid/detector_value", type=int)
-            self.__ui.detector_spin_box.setEnabled(True)
-            self.__ui.detector_spin_box.setValue(detector_value)
-            self.__ui.detector_spin_box.valueChanged.connect(
-                self.__on_detector_spin_box_value_changed)
-            self.__on_detector_spin_box_value_changed(detector_value)
+            self.__ui.detector_value_spin_box.setEnabled(True)
+            self.__ui.detector_value_spin_box.setValue(detector_value)
+            self.__ui.detector_value_spin_box.valueChanged.connect(
+                self.__on_detector_value_spin_box_value_changed)
+            self.__on_detector_value_spin_box_value_changed(detector_value)
         elif i == 1:
             self.__settings.setValue("grid/detector_type", "dynamic")
-            self.__ui.detector_spin_box.setDisabled(True)
-            self.__ui.detector_spin_box.setValue(0)
+            self.__ui.detector_value_spin_box.setDisabled(True)
+            self.__ui.detector_value_spin_box.setValue(0)
             if not init:
-                self.__ui.detector_spin_box.valueChanged.disconnect(
-                    self.__on_detector_spin_box_value_changed)
-            self.__ui.detector_hint_label.setText("")
+                self.__ui.detector_value_spin_box.valueChanged.disconnect(
+                    self.__on_detector_value_spin_box_value_changed)
+            self.__ui.detector_value_hint_label.setText("")
         else:
             raise ValueError(i)
 
@@ -197,20 +197,20 @@ class OnMrBuildDialog(QDialog):
     def __is_strictly_increasing(self, grid):
         return all(x < y for x, y in zip(grid, grid[1:]))
 
-    def __on_detector_spin_box_value_changed(self, value):
+    def __on_detector_value_spin_box_value_changed(self, value):
         ds_interval = float(self.__settings.value(
             "ds_interval").replace(",", "."))
 
         if value >= 0:
             detector_interval = round(value * ds_interval, 2)
-            detector_hint_label_text = f"({detector_interval} с от начала сегмента)"
+            detector_value_hint_label_text = f"({detector_interval} с от начала сегмента)"
         else:
             detector_interval = round(-((value+1) * ds_interval), 2)
-            detector_hint_label_text = f"({detector_interval} с от конца сегмента)"
+            detector_value_hint_label_text = f"({detector_interval} с от конца сегмента)"
 
-        self.__ui.detector_hint_label.setText(
-            detector_hint_label_text)
-        self.__ui.detector_hint_label.adjustSize()
+        self.__ui.detector_value_hint_label.setText(
+            detector_value_hint_label_text)
+        self.__ui.detector_value_hint_label.adjustSize()
 
     def __save_grid(self):
         grid = self.__grid_table_model.getGrid()
@@ -295,7 +295,7 @@ class OnMrBuildDialog(QDialog):
                 QMessageBox().critical(None, "Ошибка", "Ворота должны быть больше нуля")
                 return
             self.__settings.setValue("grid/margin", margin)
-            detector = self.__ui.detector_spin_box.value()
+            detector = self.__ui.detector_value_spin_box.value()
             self.__settings.setValue("grid/detector_value", detector)
             interpolate = self.__ui.interpolate_check_box.isChecked()
             self.__settings.setValue("grid/interpolate", interpolate)

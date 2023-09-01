@@ -223,7 +223,7 @@
      <string>TextLabel</string>
     </property>
    </widget>
-   <widget class="QLabel" name="detector_name_label">
+   <widget class="QLabel" name="detector_value_label">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -236,7 +236,7 @@
      <string>Значение детектора:</string>
     </property>
    </widget>
-   <widget class="QSpinBox" name="detector_spin_box">
+   <widget class="QSpinBox" name="detector_value_spin_box">
     <property name="geometry">
      <rect>
       <x>130</x>
@@ -265,7 +265,7 @@
      <string>Интерполяция</string>
     </property>
    </widget>
-   <widget class="QLabel" name="detector_hint_label">
+   <widget class="QLabel" name="detector_value_hint_label">
     <property name="geometry">
      <rect>
       <x>250</x>
