@@ -413,10 +413,10 @@ class MRSignal:
                         distances = distances.abs()
                         closest_to_grid_value = distances.idxmin()
                         # picked_value - Series (будет ошибка далее по коду):
-                        # picked_value = segment.loc[closest_to_grid_value + detector_value]
+                        # picked_value = segment.loc[closest_to_grid_value]
                         # picked_value - DataFrame (без ошибок):
                         picked_value = segment.loc[[
-                            closest_to_grid_value + detector_value]]
+                            closest_to_grid_value]]
                     else:
                         raise ValueError("detector_type")
 

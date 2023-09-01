@@ -37,11 +37,21 @@ class OnMrBuildDialog(QDialog):
         self.__ui.margin_double_spin_box.setValue(
             self.__settings.value("grid/margin", type=float))
 
-        self.__ui.detector_spin_box.valueChanged.connect(
-            self.__on_detector_spin_box_value_changed)
+        self.__ui.detector_type_combo_box.addItem("Статика")
+        self.__ui.detector_type_combo_box.addItem("Динамика")
 
-        self.__ui.detector_spin_box.setValue(
-            self.__settings.value("grid/detector", type=int))
+        detector_type = self.__settings.value("grid/detector_type")
+        if detector_type == "static":
+            self.__ui.detector_type_combo_box.setCurrentIndex(0)
+            self.__on_current_detector_type_index_changed(0, True)
+        elif detector_type == "dynamic":
+            self.__ui.detector_type_combo_box.setCurrentIndex(1)
+            self.__on_current_detector_type_index_changed(1, True)
+        else:
+            raise ValueError("detector_type")
+
+        self.__ui.detector_type_combo_box.currentIndexChanged.connect(
+            self.__on_current_detector_type_index_changed)
 
         self.__ui.interpolate_check_box.setChecked(
             self.__settings.value("grid/interpolate", type=bool))
@@ -93,7 +103,7 @@ class OnMrBuildDialog(QDialog):
             self.__settings.value("sequence"))
 
         self.__ui.sequence_combo_box.currentIndexChanged.connect(
-            self.__on_current_index_changed)
+            self.__on_current_sequence_index_changed)
 
         self.__ui.grid_group_box.setChecked(
             self.__settings.value("grid/on", type=bool))
@@ -154,8 +164,29 @@ class OnMrBuildDialog(QDialog):
         ru = self.__settings.value("ru_mnemonics", type=dict)
         return ru[value]
 
-    def __on_current_index_changed(self, i):
+    def __on_current_sequence_index_changed(self, i):
         self.__settings.setValue("sequence", i)
+
+    def __on_current_detector_type_index_changed(self, i, init=False):
+        if i == 0:
+            self.__settings.setValue("grid/detector_type", "static")
+            detector_value = self.__settings.value(
+                "grid/detector_value", type=int)
+            self.__ui.detector_spin_box.setEnabled(True)
+            self.__ui.detector_spin_box.setValue(detector_value)
+            self.__ui.detector_spin_box.valueChanged.connect(
+                self.__on_detector_spin_box_value_changed)
+            self.__on_detector_spin_box_value_changed(detector_value)
+        elif i == 1:
+            self.__settings.setValue("grid/detector_type", "dynamic")
+            self.__ui.detector_spin_box.setDisabled(True)
+            self.__ui.detector_spin_box.setValue(0)
+            if not init:
+                self.__ui.detector_spin_box.valueChanged.disconnect(
+                    self.__on_detector_spin_box_value_changed)
+            self.__ui.detector_hint_label.setText("")
+        else:
+            raise ValueError(i)
 
     def __on_grid_group_box_toggled(self, checked):
         self.__settings.setValue("grid/on", checked)
@@ -174,7 +205,7 @@ class OnMrBuildDialog(QDialog):
             detector_interval = round(value * ds_interval, 2)
             detector_hint_label_text = f"({detector_interval} с от начала сегмента)"
         else:
-            detector_interval = round(-(value * ds_interval), 2)
+            detector_interval = round(-((value+1) * ds_interval), 2)
             detector_hint_label_text = f"({detector_interval} с от конца сегмента)"
 
         self.__ui.detector_hint_label.setText(
@@ -265,7 +296,7 @@ class OnMrBuildDialog(QDialog):
                 return
             self.__settings.setValue("grid/margin", margin)
             detector = self.__ui.detector_spin_box.value()
-            self.__settings.setValue("grid/detector", detector)
+            self.__settings.setValue("grid/detector_value", detector)
             interpolate = self.__ui.interpolate_check_box.isChecked()
             self.__settings.setValue("grid/interpolate", interpolate)
 
