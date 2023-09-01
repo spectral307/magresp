@@ -99,7 +99,8 @@ def load_settings(reset=False):
         settings.setValue("down_grid/data", [0., 100.])
         settings.setValue("grid/margin", 10.)
         settings.setValue("grid/interpolate", True)
-        settings.setValue("grid/detector", -6)
+        settings.setValue("grid/detector_type", "static")
+        settings.setValue("grid/detector_value", -6)
 
     settings.beginGroup("output")
     if "excel" not in settings.childGroups():

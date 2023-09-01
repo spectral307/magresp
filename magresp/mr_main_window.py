@@ -48,7 +48,8 @@ class MrMainWindow(QMainWindow):
 
         sequence = Sequence(self.__settings.value("sequence", type=int))
         interpolate = self.__settings.value("grid/interpolate", type=bool)
-        detector = self.__settings.value("grid/detector", type=int)
+        detector_type = self.__settings.value("grid/detector_type", type=str)
+        detector_value = self.__settings.value("grid/detector_value", type=int)
 
         if self.__settings.value("grid/on", type=bool):
             sequence = Sequence(self.__settings.value("sequence", type=int))
@@ -66,7 +67,7 @@ class MrMainWindow(QMainWindow):
                              for item in self.__settings.value("down_grid/data", type=list)]
                 try:
                     self.__ds_mr_signal.calculate_parts_and_segments_by_grid(
-                        sequence, margin, detector, grid, down_grid, interpolate)
+                        sequence, margin, detector_type, detector_value, grid, down_grid, interpolate)
                 except EmptySegmentError as err:
                     if err.type == "up":
                         x = "подъема"
@@ -96,7 +97,7 @@ class MrMainWindow(QMainWindow):
             else:
                 try:
                     self.__ds_mr_signal.calculate_parts_and_segments_by_grid(
-                        sequence, margin, detector, grid, down_grid=None, interpolate=interpolate)
+                        sequence, margin, detector_type, detector_value, grid, down_grid=None, interpolate=interpolate)
                 except EmptySegmentError as err:
                     if err.type == "up":
                         x = "подъема"

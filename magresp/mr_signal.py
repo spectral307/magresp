@@ -212,7 +212,7 @@ class MRSignal:
             return
         self.__mr_interpolated_handlers.remove(handler)
 
-    def calculate_parts_and_segments_by_grid(self, sequence, margin, detector, grid, down_grid=None, interpolate=False):
+    def calculate_parts_and_segments_by_grid(self, sequence, margin, detector_type, detector_value, grid, down_grid=None, interpolate=False):
         self.__clear_parts()
         self.__clear_segments()
         self.__clear_mr_values()
@@ -391,19 +391,37 @@ class MRSignal:
         for handler in self.__segments_calculated_handlers:
             handler()
 
-        self.__pick_mr_values(sequence, detector)
+        self.__pick_mr_values(sequence, detector_type, detector_value)
 
         if self.__interpolate:
             self.__interpolate_mr(grid, down_grid)
 
-    def __pick_mr_values(self, sequence, detector):
+    def __pick_mr_values(self, sequence, detector_type, detector_value):
         self.__clear_mr()
 
         for part in self.parts:
             for i, segment in enumerate(self.segments[part.type]):
                 try:
-                    picked_value = segment.iloc[[detector]]
+                    if detector_type == "static":
+                        # picked_value - Series (будет ошибка далее по коду):
+                        # picked_value = segment.iloc[detector_value]
+                        # picked_value - DataFrame (без ошибок):
+                        picked_value = segment.iloc[[detector_value]]
+                    elif detector_type == "dynamic":
+                        distances = segment.grid_value - \
+                            segment[str(self.cols.etalon_pq)]
+                        distances = distances.abs()
+                        closest_to_grid_value = distances.idxmin()
+                        # picked_value - Series (будет ошибка далее по коду):
+                        # picked_value = segment.loc[closest_to_grid_value + detector_value]
+                        # picked_value - DataFrame (без ошибок):
+                        picked_value = segment.loc[[
+                            closest_to_grid_value + detector_value]]
+                    else:
+                        raise ValueError("detector_type")
+
                     picked_value.grid_value = segment.grid_value
+
                 except IndexError:
                     raise ShortSegmentError(part.type, segment.grid_value)
                 self.mr_values[part.type].append(picked_value)
