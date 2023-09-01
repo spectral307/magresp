@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'on_mr_build_dialog.ui'
+# Form implementation generated from reading ui file 'magresp/on_mr_build_dialog.ui'
 #
 # Created by: PyQt6 UI code generator 6.3.0
 #
@@ -12,9 +12,9 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_OnMrBuildDialog(object):
     def setupUi(self, OnMrBuildDialog):
         OnMrBuildDialog.setObjectName("OnMrBuildDialog")
-        OnMrBuildDialog.resize(531, 811)
+        OnMrBuildDialog.resize(531, 841)
         self.buttonBox = QtWidgets.QDialogButtonBox(OnMrBuildDialog)
-        self.buttonBox.setGeometry(QtCore.QRect(10, 750, 511, 32))
+        self.buttonBox.setGeometry(QtCore.QRect(10, 780, 511, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Orientation.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Ok)
         self.buttonBox.setCenterButtons(True)
@@ -26,7 +26,7 @@ class Ui_OnMrBuildDialog(object):
         self.sequence_label.setGeometry(QtCore.QRect(20, 20, 201, 16))
         self.sequence_label.setObjectName("sequence_label")
         self.grid_group_box = QtWidgets.QGroupBox(OnMrBuildDialog)
-        self.grid_group_box.setGeometry(QtCore.QRect(10, 60, 511, 671))
+        self.grid_group_box.setGeometry(QtCore.QRect(10, 60, 511, 701))
         self.grid_group_box.setCheckable(True)
         self.grid_group_box.setObjectName("grid_group_box")
         self.down_grid_group_box = QtWidgets.QGroupBox(self.grid_group_box)
@@ -63,26 +63,32 @@ class Ui_OnMrBuildDialog(object):
         self.margin_name_label.setGeometry(QtCore.QRect(10, 580, 61, 16))
         self.margin_name_label.setObjectName("margin_name_label")
         self.margin_double_spin_box = QtWidgets.QDoubleSpinBox(self.grid_group_box)
-        self.margin_double_spin_box.setGeometry(QtCore.QRect(70, 580, 111, 22))
+        self.margin_double_spin_box.setGeometry(QtCore.QRect(130, 580, 111, 22))
         self.margin_double_spin_box.setMaximum(1000000.0)
         self.margin_double_spin_box.setObjectName("margin_double_spin_box")
         self.margin_unit_label = QtWidgets.QLabel(self.grid_group_box)
-        self.margin_unit_label.setGeometry(QtCore.QRect(190, 580, 49, 16))
+        self.margin_unit_label.setGeometry(QtCore.QRect(250, 580, 49, 16))
         self.margin_unit_label.setObjectName("margin_unit_label")
         self.detector_name_label = QtWidgets.QLabel(self.grid_group_box)
-        self.detector_name_label.setGeometry(QtCore.QRect(10, 610, 61, 16))
+        self.detector_name_label.setGeometry(QtCore.QRect(10, 640, 111, 16))
         self.detector_name_label.setObjectName("detector_name_label")
         self.detector_spin_box = QtWidgets.QSpinBox(self.grid_group_box)
-        self.detector_spin_box.setGeometry(QtCore.QRect(70, 610, 111, 22))
+        self.detector_spin_box.setGeometry(QtCore.QRect(130, 640, 111, 22))
         self.detector_spin_box.setMinimum(-1000000)
         self.detector_spin_box.setMaximum(1000000)
         self.detector_spin_box.setObjectName("detector_spin_box")
         self.interpolate_check_box = QtWidgets.QCheckBox(self.grid_group_box)
-        self.interpolate_check_box.setGeometry(QtCore.QRect(10, 640, 101, 20))
+        self.interpolate_check_box.setGeometry(QtCore.QRect(10, 670, 101, 20))
         self.interpolate_check_box.setObjectName("interpolate_check_box")
         self.detector_hint_label = QtWidgets.QLabel(self.grid_group_box)
-        self.detector_hint_label.setGeometry(QtCore.QRect(190, 610, 49, 16))
+        self.detector_hint_label.setGeometry(QtCore.QRect(250, 640, 49, 16))
         self.detector_hint_label.setObjectName("detector_hint_label")
+        self.detector_type_combo_box = QtWidgets.QComboBox(self.grid_group_box)
+        self.detector_type_combo_box.setGeometry(QtCore.QRect(130, 610, 111, 22))
+        self.detector_type_combo_box.setObjectName("detector_type_combo_box")
+        self.detector_type_label = QtWidgets.QLabel(self.grid_group_box)
+        self.detector_type_label.setGeometry(QtCore.QRect(10, 610, 81, 16))
+        self.detector_type_label.setObjectName("detector_type_label")
 
         self.retranslateUi(OnMrBuildDialog)
         self.buttonBox.accepted.connect(OnMrBuildDialog.accept) # type: ignore
@@ -101,9 +107,10 @@ class Ui_OnMrBuildDialog(object):
         self.save_grid_push_button.setText(_translate("OnMrBuildDialog", "Сохранить..."))
         self.margin_name_label.setText(_translate("OnMrBuildDialog", "Ворота:  ±"))
         self.margin_unit_label.setText(_translate("OnMrBuildDialog", "TextLabel"))
-        self.detector_name_label.setText(_translate("OnMrBuildDialog", "Детектор:"))
+        self.detector_name_label.setText(_translate("OnMrBuildDialog", "Значение детектора:"))
         self.interpolate_check_box.setText(_translate("OnMrBuildDialog", "Интерполяция"))
         self.detector_hint_label.setText(_translate("OnMrBuildDialog", "TextLabel"))
+        self.detector_type_label.setText(_translate("OnMrBuildDialog", "Тип детектора:"))
 
 
 if __name__ == "__main__":
