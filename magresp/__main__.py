@@ -16,10 +16,10 @@ def get_default_path():
     return path
 
 
-def load_settings(reset=False):
+def load_settings(reset_all=False, reset_grid=False):
     settings = QSettings()
 
-    if reset:
+    if reset_all:
         settings.clear()
 
     if settings.value("colors") is None:
@@ -95,7 +95,8 @@ def load_settings(reset=False):
     if settings.value("sequence") is None:
         settings.setValue("sequence", int(Sequence.UP_DOWN))
 
-    if "grid" not in settings.childGroups():
+    if (("grid" not in settings.childGroups()) or
+            reset_grid):
         settings.setValue("grid/on", False)
         settings.setValue("down_grid/on", False)
         settings.setValue("grid/data", [0., 100.])
@@ -124,13 +125,22 @@ def remove_settings(key):
 
 
 def main():
+    reset_all = False
+    reset_grid = False
+    if "reset_all" in sys.argv:
+        reset_all = True
+        sys.argv.remove("reset_all")
+    if "reset_grid" in sys.argv:
+        reset_grid = True
+        sys.argv.remove("reset_grid")
+
     app = QApplication(sys.argv)
 
     app.setApplicationName("magresp")
     app.setOrganizationName("GTLab")
     app.setOrganizationDomain("gtlab.pro")
 
-    load_settings(reset=False)
+    load_settings(reset_all=reset_all, reset_grid=reset_grid)
 
     main = MainWindow()
     main.show()
