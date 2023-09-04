@@ -16,6 +16,7 @@ class MrMainWindow(QMainWindow):
 
         self.__lines = []
         self.__interpolation_lines = []
+        self.__raw_line = None
 
         self.__ds_mr_signal = ds_mr_signal
         self.__settings = QSettings()
@@ -154,6 +155,11 @@ class MrMainWindow(QMainWindow):
             self.__ax.lines.remove(line)
         self.__interpolation_lines.clear()
 
+    def __clear_raw_line(self):
+        if self.__raw_line:
+            self.__ax.lines.remove(self.__raw_line)
+        self.__raw_line = None
+
     def __mr_calculated_handler(self):
         self.__clear_lines()
 
@@ -175,6 +181,8 @@ class MrMainWindow(QMainWindow):
                 marker=".")
             self.__lines.append(line)
 
+        self.__plot_raw_line()
+
         self.__ax.legend()
         self.__canvas.draw_idle()
 
@@ -189,8 +197,22 @@ class MrMainWindow(QMainWindow):
                 marker=".")
             self.__interpolation_lines.append(line)
 
+        self.__plot_raw_line()
+
         self.__ax.legend()
         self.__canvas.draw_idle()
+
+    def __plot_raw_line(self, draw_idle=False):
+        self.__clear_raw_line()
+
+        raw_line, = self.__ax.plot(
+            self.__ds_mr_signal.df[str(self.__ds_mr_signal.cols.etalon_pq)],
+            self.__ds_mr_signal.df[str(self.__ds_mr_signal.cols.dut)],
+            label=self.__ru["raw"],
+            zorder=0,
+            color=self.__colors["raw"])
+
+        self.__raw_line = raw_line
 
     def __save_excel(self):
         file_path = self.__get_save_file_path()
