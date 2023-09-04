@@ -70,7 +70,7 @@ class Ui_OnMrBuildDialog(object):
         self.margin_unit_label.setGeometry(QtCore.QRect(250, 580, 49, 16))
         self.margin_unit_label.setObjectName("margin_unit_label")
         self.detector_value_label = QtWidgets.QLabel(self.grid_group_box)
-        self.detector_value_label.setGeometry(QtCore.QRect(10, 640, 111, 16))
+        self.detector_value_label.setGeometry(QtCore.QRect(10, 640, 121, 16))
         self.detector_value_label.setObjectName("detector_value_label")
         self.detector_value_spin_box = QtWidgets.QSpinBox(self.grid_group_box)
         self.detector_value_spin_box.setGeometry(QtCore.QRect(130, 640, 111, 22))
@@ -78,7 +78,7 @@ class Ui_OnMrBuildDialog(object):
         self.detector_value_spin_box.setMaximum(1000000)
         self.detector_value_spin_box.setObjectName("detector_value_spin_box")
         self.interpolate_check_box = QtWidgets.QCheckBox(self.grid_group_box)
-        self.interpolate_check_box.setGeometry(QtCore.QRect(10, 670, 101, 20))
+        self.interpolate_check_box.setGeometry(QtCore.QRect(10, 670, 141, 20))
         self.interpolate_check_box.setObjectName("interpolate_check_box")
         self.detector_value_hint_label = QtWidgets.QLabel(self.grid_group_box)
         self.detector_value_hint_label.setGeometry(QtCore.QRect(250, 640, 49, 16))
@@ -89,6 +89,9 @@ class Ui_OnMrBuildDialog(object):
         self.detector_type_label = QtWidgets.QLabel(self.grid_group_box)
         self.detector_type_label.setGeometry(QtCore.QRect(10, 610, 81, 16))
         self.detector_type_label.setObjectName("detector_type_label")
+        self.show_raw_mag_resp_check_box = QtWidgets.QCheckBox(self.grid_group_box)
+        self.show_raw_mag_resp_check_box.setGeometry(QtCore.QRect(200, 670, 191, 20))
+        self.show_raw_mag_resp_check_box.setObjectName("show_raw_mag_resp_check_box")
 
         self.retranslateUi(OnMrBuildDialog)
         self.buttonBox.accepted.connect(OnMrBuildDialog.accept) # type: ignore
@@ -108,9 +111,10 @@ class Ui_OnMrBuildDialog(object):
         self.margin_name_label.setText(_translate("OnMrBuildDialog", "Ворота:  ±"))
         self.margin_unit_label.setText(_translate("OnMrBuildDialog", "TextLabel"))
         self.detector_value_label.setText(_translate("OnMrBuildDialog", "Значение детектора:"))
-        self.interpolate_check_box.setText(_translate("OnMrBuildDialog", "Интерполяция"))
+        self.interpolate_check_box.setText(_translate("OnMrBuildDialog", "Интерполировать АХ"))
         self.detector_value_hint_label.setText(_translate("OnMrBuildDialog", "TextLabel"))
         self.detector_type_label.setText(_translate("OnMrBuildDialog", "Тип детектора:"))
+        self.show_raw_mag_resp_check_box.setText(_translate("OnMrBuildDialog", "Показать необработанную АХ"))
 
 
 if __name__ == "__main__":

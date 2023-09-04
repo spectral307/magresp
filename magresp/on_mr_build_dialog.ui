@@ -228,7 +228,7 @@
      <rect>
       <x>10</x>
       <y>640</y>
-      <width>111</width>
+      <width>121</width>
       <height>16</height>
      </rect>
     </property>
@@ -257,12 +257,12 @@
      <rect>
       <x>10</x>
       <y>670</y>
-      <width>101</width>
+      <width>141</width>
       <height>20</height>
      </rect>
     </property>
     <property name="text">
-     <string>Интерполяция</string>
+     <string>Интерполировать АХ</string>
     </property>
    </widget>
    <widget class="QLabel" name="detector_value_hint_label">
@@ -299,6 +299,19 @@
     </property>
     <property name="text">
      <string>Тип детектора:</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="show_raw_mag_resp_check_box">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>670</y>
+      <width>191</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Показать необработанную АХ</string>
     </property>
    </widget>
   </widget>

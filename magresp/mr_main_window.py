@@ -181,7 +181,8 @@ class MrMainWindow(QMainWindow):
                 marker=".")
             self.__lines.append(line)
 
-        self.__plot_raw_line()
+        if self.__settings.value("show_raw_magnitude_response", type=bool):
+            self.__plot_raw_line()
 
         self.__ax.legend()
         self.__canvas.draw_idle()
@@ -197,7 +198,8 @@ class MrMainWindow(QMainWindow):
                 marker=".")
             self.__interpolation_lines.append(line)
 
-        self.__plot_raw_line()
+        if self.__settings.value("show_raw_magnitude_response", type=bool):
+            self.__plot_raw_line()
 
         self.__ax.legend()
         self.__canvas.draw_idle()

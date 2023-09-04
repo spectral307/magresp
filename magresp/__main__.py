@@ -66,6 +66,9 @@ def load_settings(reset=False):
     if settings.value("show_raw_signals") is None:
         settings.setValue("show_raw_signals", False)
 
+    if settings.value("show_raw_magnitude_response") is None:
+        settings.setValue("show_raw_magnitude_response", True)
+
     if settings.value("ds_interval") is None:
         settings.setValue("ds_interval", "0,5")
 

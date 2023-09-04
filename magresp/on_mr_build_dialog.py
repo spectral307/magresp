@@ -56,6 +56,9 @@ class OnMrBuildDialog(QDialog):
         self.__ui.interpolate_check_box.setChecked(
             self.__settings.value("grid/interpolate", type=bool))
 
+        self.__ui.show_raw_mag_resp_check_box.setChecked(
+            self.__settings.value("show_raw_magnitude_response", type=bool))
+
         self.__ui.load_grid_push_button.pressed.connect(self.__load_grid)
         self.__ui.load_down_grid_push_button.pressed.connect(
             self.__load_down_grid)
@@ -299,6 +302,9 @@ class OnMrBuildDialog(QDialog):
             self.__settings.setValue("grid/detector_value", detector)
             interpolate = self.__ui.interpolate_check_box.isChecked()
             self.__settings.setValue("grid/interpolate", interpolate)
+            show_raw_magnitude_response = self.__ui.show_raw_mag_resp_check_box.isChecked()
+            self.__settings.setValue(
+                "show_raw_magnitude_response", show_raw_magnitude_response)
 
         down_grid = self.__down_grid_table_model.getGrid()
         down_grid_on = self.__ui.down_grid_group_box.isChecked()
