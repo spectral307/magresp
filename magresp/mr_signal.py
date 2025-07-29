@@ -96,7 +96,7 @@ class MRSignal:
 
     def get_by_function(self, fs, block_duration):
         def by_function(i):
-            return int(i / fs // block_duration)
+            return (i / fs // block_duration)
         return by_function
 
     def downsample_by_block_averaging(self, block_duration: float, drop_last=True):
