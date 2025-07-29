@@ -76,7 +76,7 @@ class Ui_OnOpenFileDialog(object):
         self.etalon_ch_ordinal_label.setObjectName("etalon_ch_ordinal_label")
         self.etalon_ch_ordinal_spin_box = QtWidgets.QSpinBox(self.etalon_ch_group_box)
         self.etalon_ch_ordinal_spin_box.setGeometry(QtCore.QRect(140, 90, 51, 22))
-        self.etalon_ch_ordinal_spin_box.setMaximum(1)
+        self.etalon_ch_ordinal_spin_box.setMaximum(3)
         self.etalon_ch_ordinal_spin_box.setObjectName("etalon_ch_ordinal_spin_box")
         self.dut_ch_group_box = QtWidgets.QGroupBox(self.channels_settings_group_box)
         self.dut_ch_group_box.setGeometry(QtCore.QRect(10, 150, 361, 121))
@@ -95,7 +95,7 @@ class Ui_OnOpenFileDialog(object):
         self.dut_ch_ordinal_label.setObjectName("dut_ch_ordinal_label")
         self.dut_ch_ordinal_spin_box = QtWidgets.QSpinBox(self.dut_ch_group_box)
         self.dut_ch_ordinal_spin_box.setGeometry(QtCore.QRect(140, 90, 51, 22))
-        self.dut_ch_ordinal_spin_box.setMaximum(1)
+        self.dut_ch_ordinal_spin_box.setMaximum(3)
         self.dut_ch_ordinal_spin_box.setObjectName("dut_ch_ordinal_spin_box")
 
         self.retranslateUi(OnOpenFileDialog)

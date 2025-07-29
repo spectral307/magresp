@@ -262,7 +262,7 @@
       </rect>
      </property>
      <property name="maximum">
-      <number>1</number>
+      <number>3</number>
      </property>
     </widget>
    </widget>
@@ -337,7 +337,7 @@
       </rect>
      </property>
      <property name="maximum">
-      <number>1</number>
+      <number>3</number>
      </property>
     </widget>
    </widget>
