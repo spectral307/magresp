@@ -47,6 +47,8 @@ class OnOpenFileDialog(QDialog):
             self.__settings.value("channels/etalon/use_gtl_name", type=bool))
         self.__ui.etalon_ch_ordinal_spin_box.setValue(
             self.__settings.value("channels/etalon/ordinal", type=int))
+        self.__ui.etalon_ch_ordinal_spin_box.valueChanged.connect(
+            self.__on_etalon_ch_ordinal_changed)
 
         self.__ui.dut_ch_name_line_edit.setText(
             self.__settings.value("channels/dut/name"))
@@ -56,6 +58,8 @@ class OnOpenFileDialog(QDialog):
             self.__settings.value("channels/dut/use_gtl_name", type=bool))
         self.__ui.dut_ch_ordinal_spin_box.setValue(
             self.__settings.value("channels/dut/ordinal", type=int))
+        self.__ui.dut_ch_ordinal_spin_box.valueChanged.connect(
+            self.__on_dut_ch_ordinal_changed)
 
         self.__ui.show_raw_signals_check_box.setChecked(
             self.__settings.value("show_raw_signals", type=bool))
@@ -146,3 +150,19 @@ class OnOpenFileDialog(QDialog):
         self.__settings.setValue("show_raw_signals", show_raw_signals)
 
         return super().accept()
+
+    def __on_etalon_ch_ordinal_changed(self, i):
+        if i == 0:
+            self.__ui.dut_ch_ordinal_spin_box.setValue(1)
+        elif i == 1:
+            self.__ui.dut_ch_ordinal_spin_box.setValue(0)
+        else:
+            raise ValueError("i")
+
+    def __on_dut_ch_ordinal_changed(self, i):
+        if i == 0:
+            self.__ui.etalon_ch_ordinal_spin_box.setValue(1)
+        elif i == 1:
+            self.__ui.etalon_ch_ordinal_spin_box.setValue(0)
+        else:
+            raise ValueError("i")
