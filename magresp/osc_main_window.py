@@ -47,13 +47,13 @@ class OscMainWindow(QMainWindow):
             float(self.__settings.value("etalon/k").replace(",", ".")),
             float(self.__settings.value("etalon/u0").replace(",", ".")))
 
-        line1, = self.__ax1.plot(ds_mr_signal.df[str(ds_mr_signal.cols.time)],
+        line1, = self.__ax1.plot(ds_mr_signal.df[str(ds_mr_signal.cols.time)].to_numpy(),
                                  ds_mr_signal.df[str(
-                                     ds_mr_signal.cols.etalon_pq)], color=self.__colors["ds"],
+                                     ds_mr_signal.cols.etalon_pq)].to_numpy(), color=self.__colors["ds"],
                                  label=self.__ru["ds"], zorder=1, marker=".")
-        line2, = self.__ax2.plot(ds_mr_signal.df[str(ds_mr_signal.cols.time)],
+        line2, = self.__ax2.plot(ds_mr_signal.df[str(ds_mr_signal.cols.time)].to_numpy(),
                                  ds_mr_signal.df[str(
-                                     ds_mr_signal.cols.dut)], color=self.__colors["ds"],
+                                     ds_mr_signal.cols.dut)].to_numpy(), color=self.__colors["ds"],
                                  label=self.__ru["ds"], zorder=1, marker=".")
 
         self.__ax1_lines = []
@@ -69,9 +69,12 @@ class OscMainWindow(QMainWindow):
                 float(self.__settings.value("etalon/k").replace(",", ".")),
                 float(self.__settings.value("etalon/u0").replace(",", ".")))
 
-            self.__ax1.plot(mr_signal.df[str(mr_signal.cols.time)], mr_signal.df[str(mr_signal.cols.etalon_pq)],
+            self.__ax1.plot(mr_signal.df[str(mr_signal.cols.time)].to_numpy(),
+                            mr_signal.df[str(
+                                mr_signal.cols.etalon_pq)].to_numpy(),
                             label=self.__ru["raw"], zorder=0)
-            self.__ax2.plot(mr_signal.df[str(mr_signal.cols.time)], mr_signal.df[str(mr_signal.cols.dut)],
+            self.__ax2.plot(mr_signal.df[str(mr_signal.cols.time)].to_numpy(),
+                            mr_signal.df[str(mr_signal.cols.dut)].to_numpy(),
                             label=self.__ru["raw"], zorder=0)
 
         self.__ax1.set_xlabel(str(ds_mr_signal.cols.time))
@@ -120,13 +123,13 @@ class OscMainWindow(QMainWindow):
 
         for part_type in self.__ds_mr_signal.segments:
             for segment in self.__ds_mr_signal.segments[part_type]:
-                line1, = self.__ax1.plot(segment[str(self.__ds_mr_signal.cols.time)],
+                line1, = self.__ax1.plot(segment[str(self.__ds_mr_signal.cols.time)].to_numpy(),
                                          segment[str(
-                                             self.__ds_mr_signal.cols.etalon_pq)],
+                                             self.__ds_mr_signal.cols.etalon_pq)].to_numpy(),
                                          c=self.__colors[part_type], marker=".")
-                line2, = self.__ax2.plot(segment[str(self.__ds_mr_signal.cols.time)],
+                line2, = self.__ax2.plot(segment[str(self.__ds_mr_signal.cols.time)].to_numpy(),
                                          segment[str(
-                                             self.__ds_mr_signal.cols.dut)],
+                                             self.__ds_mr_signal.cols.dut)].to_numpy(),
                                          c=self.__colors[part_type], marker=".")
                 self.__ax1_lines.append(line1)
                 self.__ax2_lines.append(line2)
@@ -157,7 +160,7 @@ class OscMainWindow(QMainWindow):
             for mr_value in self.__ds_mr_signal.mr_values[part_type]:
                 try:
                     self.__snap_cursor_stack.add_cursor(
-                        mr_value.index[0], color=self.__colors[part_type])
+                        int(mr_value.index[0]), color=self.__colors[part_type])
                 except ValueError as err:
                     if (str(err) == "There is already cursor with same xdata_ind"):
                         if part_type == "up":
@@ -191,12 +194,14 @@ class OscMainWindow(QMainWindow):
         legend_labels = []
 
         for part in self.__ds_mr_signal.parts:
-            line1, = self.__ax1.plot(part[str(self.__ds_mr_signal.cols.time)],
-                                     part[str(self.__ds_mr_signal.cols.etalon_pq)],
+            line1, = self.__ax1.plot(part[str(self.__ds_mr_signal.cols.time)].to_numpy(),
+                                     part[str(
+                                         self.__ds_mr_signal.cols.etalon_pq)].to_numpy(),
                                      c=self.__colors[part.type],
                                      marker=".", label=self.__ru[part.type])
-            line2, = self.__ax2.plot(part[str(self.__ds_mr_signal.cols.time)],
-                                     part[str(self.__ds_mr_signal.cols.dut)],
+            line2, = self.__ax2.plot(part[str(self.__ds_mr_signal.cols.time)].to_numpy(),
+                                     part[str(self.__ds_mr_signal.cols.dut)
+                                          ].to_numpy(),
                                      c=self.__colors[part.type],
                                      marker=".", label=self.__ru[part.type])
             self.__ax1_lines.append(line1)

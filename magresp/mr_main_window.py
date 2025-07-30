@@ -138,8 +138,9 @@ class MrMainWindow(QMainWindow):
                 label = "подъем"
             elif part.type == "down":
                 label = "спуск"
-            line, = self.__ax.plot(part[str(self.__ds_mr_signal.cols.etalon_pq)],
-                                   part[str(self.__ds_mr_signal.cols.dut)],
+            line, = self.__ax.plot(part[str(self.__ds_mr_signal.cols.etalon_pq)].to_numpy(),
+                                   part[str(self.__ds_mr_signal.cols.dut)
+                                        ].to_numpy(),
                                    label=label, color=self.__colors[part.type])
             self.__lines.append(line)
 
@@ -165,18 +166,18 @@ class MrMainWindow(QMainWindow):
 
         if (inds := self.__ds_mr_signal.get_up_mr_inds()) is not None:
             line, = self.__ax.plot(self.__ds_mr_signal.df.loc[inds, str(
-                self.__ds_mr_signal.cols.etalon_pq)],
+                self.__ds_mr_signal.cols.etalon_pq)].to_numpy(),
                 self.__ds_mr_signal.df.loc[inds, str(
-                    self.__ds_mr_signal.cols.dut)],
+                    self.__ds_mr_signal.cols.dut)].to_numpy(),
                 label=self.__ru["up"], color=self.__colors["up"],
                 marker=".")
             self.__lines.append(line)
 
         if (inds := self.__ds_mr_signal.get_down_mr_inds()) is not None:
             line, = self.__ax.plot(self.__ds_mr_signal.df.loc[inds, str(
-                self.__ds_mr_signal.cols.etalon_pq)],
+                self.__ds_mr_signal.cols.etalon_pq)].to_numpy(),
                 self.__ds_mr_signal.df.loc[inds, str(
-                    self.__ds_mr_signal.cols.dut)],
+                    self.__ds_mr_signal.cols.dut)].to_numpy(),
                 label=self.__ru["down"], color=self.__colors["down"],
                 marker=".")
             self.__lines.append(line)
@@ -208,8 +209,10 @@ class MrMainWindow(QMainWindow):
         self.__clear_raw_line()
 
         raw_line, = self.__ax.plot(
-            self.__ds_mr_signal.df[str(self.__ds_mr_signal.cols.etalon_pq)],
-            self.__ds_mr_signal.df[str(self.__ds_mr_signal.cols.dut)],
+            self.__ds_mr_signal.df[str(
+                self.__ds_mr_signal.cols.etalon_pq)].to_numpy(),
+            self.__ds_mr_signal.df[str(
+                self.__ds_mr_signal.cols.dut)].to_numpy(),
             label=self.__ru["raw"],
             zorder=0,
             color=self.__colors["raw"])
